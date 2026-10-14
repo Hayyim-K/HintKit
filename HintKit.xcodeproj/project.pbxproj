@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
+		B21000000000000000000001 /* HintKitTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HintKitTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6FDAC7EF2CF5091F00EC1E2C /* HintKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = HintKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -21,6 +22,7 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		B21000000000000000000002 /* HintKitTests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = Tests/HintKitTests; sourceTree = "<group>"; };
 		6FDAC7F12CF5091F00EC1E2C /* HintKit */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -32,6 +34,7 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		B21000000000000000000003 /* Test Frameworks */ = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (B21000000000000000000004 /* HintKit.framework in Frameworks */); runOnlyForDeploymentPostprocessing = 0; };
 		6FDAC7EC2CF5091F00EC1E2C /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -46,6 +49,7 @@
 			isa = PBXGroup;
 			children = (
 				6FDAC7F12CF5091F00EC1E2C /* HintKit */,
+				B21000000000000000000002 /* HintKitTests */,
 				6FDAC7F02CF5091F00EC1E2C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -54,6 +58,7 @@
 			isa = PBXGroup;
 			children = (
 				6FDAC7EF2CF5091F00EC1E2C /* HintKit.framework */,
+				B21000000000000000000001 /* HintKitTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -71,6 +76,7 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		B21000000000000000000005 /* HintKitTests */ = {isa = PBXNativeTarget; buildConfigurationList = B21000000000000000000006; buildPhases = (B21000000000000000000007, B21000000000000000000003, B21000000000000000000008); buildRules = (); dependencies = (B21000000000000000000009); fileSystemSynchronizedGroups = (B21000000000000000000002); name = HintKitTests; productName = HintKitTests; productReference = B21000000000000000000001; productType = "com.apple.product-type.bundle.unit-test"; };
 		6FDAC7EE2CF5091F00EC1E2C /* HintKit */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 6FDAC7F72CF5091F00EC1E2C /* Build configuration list for PBXNativeTarget "HintKit" */;
@@ -123,11 +129,13 @@
 			projectRoot = "";
 			targets = (
 				6FDAC7EE2CF5091F00EC1E2C /* HintKit */,
+				B21000000000000000000005 /* HintKitTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		B21000000000000000000008 /* Test Resources */ = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		6FDAC7ED2CF5091F00EC1E2C /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -138,6 +146,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		B21000000000000000000007 /* Test Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 		6FDAC7EB2CF5091F00EC1E2C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -148,10 +157,13 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		B2100000000000000000000A /* Test Debug */ = {isa = XCBuildConfiguration; buildSettings = {GENERATE_INFOPLIST_FILE = YES; PRODUCT_BUNDLE_IDENTIFIER = hayyimsTeam.HintKitTests; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 5.0; IPHONEOS_DEPLOYMENT_TARGET = 17.0; TARGETED_DEVICE_FAMILY = "1,2"; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@loader_path/Frameworks");}; name = Debug; };
+		B2100000000000000000000B /* Test Release */ = {isa = XCBuildConfiguration; buildSettings = {GENERATE_INFOPLIST_FILE = YES; PRODUCT_BUNDLE_IDENTIFIER = hayyimsTeam.HintKitTests; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 5.0; IPHONEOS_DEPLOYMENT_TARGET = 17.0; TARGETED_DEVICE_FAMILY = "1,2"; LD_RUNPATH_SEARCH_PATHS = ("$(inherited)", "@executable_path/Frameworks", "@loader_path/Frameworks");}; name = Release; };
 		6FDAC7F82CF5091F00EC1E2C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				ENABLE_TESTABILITY = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEFINES_MODULE = YES;
@@ -267,7 +279,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -327,7 +339,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -342,6 +354,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		B21000000000000000000006 /* Test Configuration */ = {isa = XCConfigurationList; buildConfigurations = (B2100000000000000000000A, B2100000000000000000000B); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
 		6FDAC7E92CF5091F00EC1E2C /* Build configuration list for PBXProject "HintKit" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -361,6 +374,9 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+		B21000000000000000000004 /* HintKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6FDAC7EF2CF5091F00EC1E2C; };
+		B21000000000000000000009 /* Framework dependency */ = {isa = PBXTargetDependency; target = 6FDAC7EE2CF5091F00EC1E2C; targetProxy = B2100000000000000000000C; };
+		B2100000000000000000000C /* Framework proxy */ = {isa = PBXContainerItemProxy; containerPortal = 6FDAC7E62CF5091F00EC1E2C; proxyType = 1; remoteGlobalIDString = 6FDAC7EE2CF5091F00EC1E2C; remoteInfo = HintKit; };
 	};
 	rootObject = 6FDAC7E62CF5091F00EC1E2C /* Project object */;
 }

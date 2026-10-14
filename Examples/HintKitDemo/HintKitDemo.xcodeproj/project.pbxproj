@@ -1,0 +1,44 @@
+// !$*UTF8*$!
+{
+    archiveVersion = 1;
+    classes = {};
+    objectVersion = 56;
+    objects = {
+        D10000000000000000000001 = {isa = PBXProject; attributes = {LastUpgradeCheck = 1610;}; buildConfigurationList = D10000000000000000000020; compatibilityVersion = "Xcode 14.0"; developmentRegion = en; knownRegions = (en, Base); mainGroup = D10000000000000000000002; productRefGroup = D10000000000000000000003; projectDirPath = ""; projectRoot = ""; targets = (D10000000000000000000004, D20000000000000000000001); packageReferences = (D10000000000000000000012);};
+        D10000000000000000000002 = {isa = PBXGroup; children = (D10000000000000000000005, D20000000000000000000004, D10000000000000000000003); sourceTree = "<group>";};
+        D10000000000000000000003 = {isa = PBXGroup; children = (D10000000000000000000006, D20000000000000000000003); name = Products; sourceTree = "<group>";};
+        D20000000000000000000001 = {isa = PBXNativeTarget; buildConfigurationList = D2000000000000000000000A; buildPhases = (D20000000000000000000007, D20000000000000000000008, D20000000000000000000009); buildRules = (); dependencies = (D2000000000000000000000D); name = HintKitDemoUITests; productName = HintKitDemoUITests; productReference = D20000000000000000000003; productType = "com.apple.product-type.bundle.ui-testing";};
+        D20000000000000000000003 = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HintKitDemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR;};
+        D20000000000000000000004 = {isa = PBXGroup; children = (D20000000000000000000005); path = UITests; sourceTree = "<group>";};
+        D20000000000000000000005 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HintKitDemoUITests.swift; sourceTree = "<group>";};
+        D20000000000000000000006 = {isa = PBXBuildFile; fileRef = D20000000000000000000005;};
+        D20000000000000000000007 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (D20000000000000000000006); runOnlyForDeploymentPostprocessing = 0;};
+        D20000000000000000000008 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0;};
+        D20000000000000000000009 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0;};
+        D2000000000000000000000A = {isa = XCConfigurationList; buildConfigurations = (D2000000000000000000000B, D2000000000000000000000C); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release;};
+        D2000000000000000000000B = {isa = XCBuildConfiguration; buildSettings = {PRODUCT_BUNDLE_IDENTIFIER = hayyimsTeam.HintKitDemoUITests; PRODUCT_NAME = "$(TARGET_NAME)"; GENERATE_INFOPLIST_FILE = YES; TEST_TARGET_NAME = HintKitDemo; SWIFT_VERSION = 5.0; IPHONEOS_DEPLOYMENT_TARGET = 17.0; TARGETED_DEVICE_FAMILY = "1,2";}; name = Debug;};
+        D2000000000000000000000C = {isa = XCBuildConfiguration; buildSettings = {PRODUCT_BUNDLE_IDENTIFIER = hayyimsTeam.HintKitDemoUITests; PRODUCT_NAME = "$(TARGET_NAME)"; GENERATE_INFOPLIST_FILE = YES; TEST_TARGET_NAME = HintKitDemo; SWIFT_VERSION = 5.0; IPHONEOS_DEPLOYMENT_TARGET = 17.0; TARGETED_DEVICE_FAMILY = "1,2";}; name = Release;};
+        D2000000000000000000000D = {isa = PBXTargetDependency; target = D10000000000000000000004; targetProxy = D2000000000000000000000E;};
+        D2000000000000000000000E = {isa = PBXContainerItemProxy; containerPortal = D10000000000000000000001; proxyType = 1; remoteGlobalIDString = D10000000000000000000004; remoteInfo = HintKitDemo;};
+        D10000000000000000000005 = {isa = PBXGroup; children = (D10000000000000000000007, D10000000000000000000008); path = Sources; sourceTree = "<group>";};
+        D10000000000000000000006 = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HintKitDemo.app; sourceTree = BUILT_PRODUCTS_DIR;};
+        D10000000000000000000007 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>";};
+        D10000000000000000000008 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoViewController.swift; sourceTree = "<group>";};
+        D10000000000000000000009 = {isa = PBXBuildFile; fileRef = D10000000000000000000007;};
+        D1000000000000000000000A = {isa = PBXBuildFile; fileRef = D10000000000000000000008;};
+        D1000000000000000000000B = {isa = PBXBuildFile; productRef = D10000000000000000000013;};
+        D1000000000000000000000C = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (D10000000000000000000009, D1000000000000000000000A); runOnlyForDeploymentPostprocessing = 0;};
+        D1000000000000000000000D = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (D1000000000000000000000B); runOnlyForDeploymentPostprocessing = 0;};
+        D1000000000000000000000E = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0;};
+        D10000000000000000000004 = {isa = PBXNativeTarget; buildConfigurationList = D10000000000000000000023; buildPhases = (D1000000000000000000000C, D1000000000000000000000D, D1000000000000000000000E); buildRules = (); dependencies = (); name = HintKitDemo; packageProductDependencies = (D10000000000000000000013); productName = HintKitDemo; productReference = D10000000000000000000006; productType = "com.apple.product-type.application";};
+        D10000000000000000000012 = {isa = XCLocalSwiftPackageReference; relativePath = ../..;};
+        D10000000000000000000013 = {isa = XCSwiftPackageProductDependency; package = D10000000000000000000012; productName = HintKit;};
+        D10000000000000000000020 = {isa = XCConfigurationList; buildConfigurations = (D10000000000000000000021, D10000000000000000000022); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release;};
+        D10000000000000000000021 = {isa = XCBuildConfiguration; buildSettings = {SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 15.0; SWIFT_VERSION = 5.0; CLANG_ENABLE_MODULES = YES; ONLY_ACTIVE_ARCH = YES; SWIFT_OPTIMIZATION_LEVEL = "-Onone"; ENABLE_TESTABILITY = YES;}; name = Debug;};
+        D10000000000000000000022 = {isa = XCBuildConfiguration; buildSettings = {SDKROOT = iphoneos; IPHONEOS_DEPLOYMENT_TARGET = 15.0; SWIFT_VERSION = 5.0; CLANG_ENABLE_MODULES = YES;}; name = Release;};
+        D10000000000000000000023 = {isa = XCConfigurationList; buildConfigurations = (D10000000000000000000024, D10000000000000000000025); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release;};
+        D10000000000000000000024 = {isa = XCBuildConfiguration; buildSettings = {PRODUCT_BUNDLE_IDENTIFIER = hayyimsTeam.HintKitDemo; PRODUCT_NAME = "$(TARGET_NAME)"; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; MARKETING_VERSION = 1.0; CURRENT_PROJECT_VERSION = 1; SWIFT_OPTIMIZATION_LEVEL = "-Onone";}; name = Debug;};
+        D10000000000000000000025 = {isa = XCBuildConfiguration; buildSettings = {PRODUCT_BUNDLE_IDENTIFIER = hayyimsTeam.HintKitDemo; PRODUCT_NAME = "$(TARGET_NAME)"; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES; INFOPLIST_KEY_UILaunchScreen_Generation = YES; INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"; TARGETED_DEVICE_FAMILY = "1,2"; CODE_SIGN_STYLE = Automatic; MARKETING_VERSION = 1.0; CURRENT_PROJECT_VERSION = 1; SWIFT_OPTIMIZATION_LEVEL = "-O";}; name = Release;};
+    };
+    rootObject = D10000000000000000000001;
+}

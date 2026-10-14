@@ -1,0 +1,261 @@
+# HintKit
+
+Contextual, nonmodal UIKit hints for iOS 15 and later. The same implementation
+works across supported iOS versions, without an Apple TipKit dependency.
+
+Show a card next to a button or image, highlight the target, and remember which
+features the user has learned. HintKit handles presentation; your app supplies
+the content and decides when an action has actually succeeded.
+
+<p>
+  <img src="Documentation/Images/demo-light.png" width="260" alt="HintKit demo in light appearance, with a card pointing to the photo button">
+  <img src="Documentation/Images/demo-dark.png" width="260" alt="HintKit demo in dark appearance">
+</p>
+
+- Anchored cards with automatic arrows and safe-area placement.
+- One visible hint at a time, with an optional queue and completion history.
+- Customizable appearance and an optional animated target outline.
+- Dynamic Type, VoiceOver, Reduce Motion, and right-to-left text support.
+- JSON catalogs, localized content supplied by the app, and screenshot exclusion.
+- No third-party dependencies. Distributed under the [MIT license](LICENSE).
+
+HintKit includes a Swift package, an Xcode framework target, automated tests,
+and a standalone demo. Both distribution forms use the same Swift files and
+storyboard. The package manifest uses Swift tools version 5.9.
+
+| Requirement | Version |
+| --- | --- |
+| App deployment target | iOS 15 or later |
+| Swift package tools | Swift 5.9 or later, with an iOS SDK |
+| Included Xcode projects | Xcode 16 or later |
+
+For a step-by-step integration walkthrough, see the [integration guide](Documentation/Guide.md).
+
+## Install with Swift Package Manager
+
+In Xcode, choose **File → Add Package Dependencies**, enter
+`https://github.com/Hayyim-K/HintKit.git`, and select version **0.1.0** or later.
+Add the **HintKit** library product to your app target.
+
+For a package manifest:
+
+```swift
+dependencies: [
+    .package(url: "https://github.com/Hayyim-K/HintKit.git", from: "0.1.0")
+]
+```
+
+Add `.product(name: "HintKit", package: "HintKit")` to your target's dependencies.
+The package includes its storyboard and localized resources automatically.
+
+## Try the demo
+
+Open `Examples/HintKitDemo/HintKitDemo.xcodeproj`, select the shared
+`HintKitDemo` scheme, and run on an iPhone or iPad simulator. It imports HintKit
+as a local Swift package. Tap Photo, Palette, and Save to complete the sequence.
+Show help again replays hints without resetting history. Reset demo history
+affects only the demo's HintKit namespace.
+
+The demo simulates these actions; it does not choose or save real photos.
+
+## Add to an app
+
+For local development, add this repository's root directory as a local Swift
+package dependency and link its `HintKit` product. Alternatively, add
+`HintKit.xcodeproj`, depend on its framework target, and embed the resulting
+framework in the app. Use one distribution form per app target.
+
+For CI, the source must be checked out with the app or made available as a
+package dependency. A path outside the checked-out repository is not available
+on Xcode Cloud. Keep the `Main.storyboard` and `Resources` directory with the
+package; HintKit loads them from its own bundle, not `Bundle.main`.
+
+## Show a hint
+
+Keep a presenter as a property of the host view controller. Call `show` after
+the host has appeared and its target view is laid out. All UI APIs run on the
+main actor.
+
+```swift
+import UIKit
+import HintKit
+
+final class PhotoViewController: UIViewController {
+    @IBOutlet private weak var photoButton: UIButton!
+    private let hints = HintPresenter()
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        hints.show(
+            Hint(id: "photo.choose", title: "Choose a photo",
+                 message: "Tap here to choose a photo.", imageName: "photo"),
+            near: photoButton, in: self
+        )
+    }
+
+    @IBAction private func photoChosen(_ sender: UIButton) {
+        hints.markCompleted("photo.choose")
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        hints.cancelAll()
+        super.viewWillDisappear(animated)
+    }
+}
+```
+
+`show` returns `false` if another card is active, its display policy excludes it,
+the host has another presented controller, the target is hidden/offscreen, or
+there is not enough room to fit a readable card. Failed attempts do not consume
+history. The target must belong to the host's view hierarchy and window.
+
+Cards are child view controllers inside the host, not modal presentations.
+Empty overlay areas pass touches through to the existing interface. The card
+is placed above or below the anchor, within the safe area. Descriptions scroll
+when necessary. A display link tracks movement and scrolling of the target;
+the card closes if its anchor disappears. Keyboard appearance, app inactivity,
+and host disappearance cancel active and pending hints.
+
+For a large view, `sourceRect` can specify a smaller anchor region in that
+view's coordinates. `HintOptions.placement` expresses a preference; the other
+side is used if it is the only side with enough space.
+
+## Queue and history
+
+```swift
+hints.enqueue(photoHint, near: photoButton, in: self)
+hints.enqueue(paletteHint, near: paletteButton, in: self)
+```
+
+Eligible hints appear one at a time. Dismissal advances the queue, without
+background threads or semaphores. Hosts and anchors are held weakly.
+Callbacks run once for hints that were actually shown, not skipped requests.
+Use `cancelAll` before presenting a photo picker, alert, or another screen.
+
+The default policy is `untilDismissed`:
+
+| Policy | Display condition |
+| --- | --- |
+| `always` | Ignore history; useful for a help button. |
+| `once` | No previous successful presentation. |
+| `untilDismissed` | Neither explicitly dismissed nor completed. |
+| `untilCompleted` | Feature use has not been recorded; closing the card is insufficient. |
+
+Call `markCompleted` when the relevant action actually succeeds. Programmatic
+cancellation does not mark the feature completed or explicitly dismissed.
+
+```swift
+let store = HintStore(namespace: "photo-editor")
+let hints = HintPresenter(store: store)
+let replay = HintOptions(displayPolicy: .always)
+hints.show(photoHint, near: photoButton, in: self, options: replay)
+```
+
+`HintStore` persists counts, dismissal, and completion in UserDefaults.
+Namespaces isolate independent flows. `reset(id)` affects one hint;
+`resetAll()` affects only the current namespace, never unrelated app settings.
+Tests can inject a separate UserDefaults suite.
+
+## JSON and localization
+
+`HintCatalog` accepts the original Space Wildfires JSON array format:
+
+```json
+[
+  {
+    "id": "photo.choose",
+    "title": "Choose a photo",
+    "message": "Tap here to choose a photo.",
+    "imageName": "photo",
+    "arrows": []
+  }
+]
+```
+
+```swift
+let catalog = try HintCatalog(contentsOf: jsonURL)
+if let hint = catalog["photo.choose"] {
+    hints.show(hint, near: photoButton, in: self)
+}
+```
+
+Empty and duplicate identifiers throw `HintCatalogError`. Invalid JSON throws
+the underlying decoding error. `title`, `imageName`, and `arrows` can be omitted.
+Leave `arrows` empty for automatic direction. Legacy tags 0–2 represent upper
+left/center/right arrows and 3–5 represent lower arrows.
+
+Localize title and message in the consuming app before constructing a Hint.
+There is no dependency on a particular app's localization mechanism.
+For a translated VoiceOver close label, pass `HintStyle(closeAccessibilityLabel:)`.
+Text supports Dynamic Type and natural writing direction; directional arrows
+remain tied to physical anchor coordinates in right-to-left interfaces.
+
+## Appearance and export
+
+```swift
+let style = HintStyle(maximumWidth: 300, tintColor: .systemOrange)
+let hints = HintPresenter(style: style)
+```
+
+The highlight animates a separate layer, without modifying the target's
+transform. Reduce Motion disables fading and pulsing. Visible hints can be
+announced to VoiceOver; disable this per presentation with
+`announcesForVoiceOver: false` when the app provides its own announcement.
+
+Hide cards and highlight layers during synchronous image capture:
+
+```swift
+let image = hints.withHintsHidden {
+    renderPostcard()
+}
+```
+
+Visibility is restored even if the operation throws. Nested capture blocks
+are supported. The consuming app remains responsible for using this API
+around its screenshot/export code.
+
+## Tests
+
+The shared HintKit Xcode scheme runs the tests under `Tests/HintKitTests`:
+
+```sh
+xcodebuild -project HintKit.xcodeproj -scheme HintKit \
+  -destination 'platform=iOS Simulator,name=iPhone SE (3rd generation),OS=17.5' \
+  -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO test
+```
+
+Select a simulator installed on your Mac. The same tests are declared by the
+Swift package and can be run from its package workspace in Xcode. They cover
+JSON compatibility, persistence, eligibility, queueing, resource loading,
+touch passthrough, close callbacks, moving anchors, long text, keyboard
+cancellation, and export visibility.
+
+The Xcode test targets use iOS 17 or later to match the XCTest runtime in the
+current SDK. The HintKit library and demo app still support iOS 15.
+
+The demo also has a UI test that taps the highlighted controls, closes a card,
+and replays help through the real app interface:
+
+```sh
+xcodebuild -project Examples/HintKitDemo/HintKitDemo.xcodeproj \
+  -scheme HintKitDemo \
+  -destination 'platform=iOS Simulator,name=iPhone 17,OS=26.2,arch=arm64' \
+  -parallel-testing-enabled NO CODE_SIGNING_ALLOWED=NO test
+```
+
+Adjust the destination and architecture for your Mac and installed simulators.
+
+The initial release was verified with all 19 tests in both distribution forms
+on iOS 17.5, the demo UI test on iOS 26.2, and an unsigned Release build for an
+iPhone destination. Direct runtime verification on iOS 15 is still pending.
+
+## Contributing
+
+Bug reports and pull requests are welcome. Include the iOS and Xcode versions,
+the anchor's layout, and a small reproduction when reporting a placement issue.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow.
+
+## License
+
+HintKit is available under the [MIT license](LICENSE).
+Copyright © 2024–2026 Vitalii Kukhar (Hayyim).
