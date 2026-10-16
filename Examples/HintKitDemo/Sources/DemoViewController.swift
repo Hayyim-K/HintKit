@@ -7,6 +7,8 @@ final class DemoViewController: UIViewController {
     private let palette = UIButton(type: .system)
     private let save = UIButton(type: .system)
     private let status = UILabel()
+    private let pointer = UISegmentedControl(items: ["Tail", "Arrows", "Both", "None"])
+    private let pointerStyles: [HintPointerStyle] = [.tail, .arrows, .tailAndArrows, .none]
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -47,7 +49,10 @@ final class DemoViewController: UIViewController {
         status.numberOfLines = 0
         status.font = .preferredFont(forTextStyle: .footnote)
         status.adjustsFontForContentSizeCategory = true
-        let stack = UIStackView(arrangedSubviews: [title, subtitle, photo, palette, save, help, reset, status])
+        pointer.selectedSegmentIndex = 0
+        pointer.accessibilityIdentifier = "demo.pointer"
+        pointer.addTarget(self, action: #selector(pointerChanged), for: .valueChanged)
+        let stack = UIStackView(arrangedSubviews: [title, subtitle, pointer, photo, palette, save, help, reset, status])
         stack.axis = .vertical
         stack.spacing = 16
         stack.translatesAutoresizingMaskIntoConstraints = false
@@ -86,7 +91,8 @@ final class DemoViewController: UIViewController {
 
     private func showHints(force: Bool) {
         presenter.cancelAll()
-        let options = HintOptions(displayPolicy: force ? .always : .untilCompleted)
+        let options = HintOptions(displayPolicy: force ? .always : .untilCompleted,
+                                  pointerStyle: pointerStyles[pointer.selectedSegmentIndex])
         presenter.enqueue(Hint(id: "demo.photo", title: "Choose a photo",
                                message: "Tap the photo button. The app remains interactive while this card is visible.",
                                imageName: "photo"), near: photo, in: self, options: options)
@@ -112,6 +118,8 @@ final class DemoViewController: UIViewController {
         status.text = "All demo actions completed. Use Show help again to replay the hints."
         presenter.markCompleted("demo.save")
     }
+
+    @objc private func pointerChanged() { showHints(force: true) }
 
     @objc private func showHelpAgain() { showHints(force: true) }
     @objc private func resetHistory() {

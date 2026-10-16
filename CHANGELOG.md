@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.0 — In development
+
+- Optional curved bubble tails, combined tails/arrows, and pointer-free cards.
+- Exact `sourcePoint` targeting and left/right card placements with safe-area fallback.
+- Independent target outlines, continuous translucent backgrounds, touch passthrough,
+  dynamic colors, movement tracking, and export exclusion for the entire bubble.
+- Demo pointer-style selector, integration examples, and tail regression tests.
+- Existing callers retain the automatic symbol-arrow presentation by default.
+
 ## 0.1.0 — 2026-10-14
 
 First public release.

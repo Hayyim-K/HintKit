@@ -28,13 +28,14 @@ final class HintViewController: UIViewController, UIGestureRecognizerDelegate {
     var onDismiss: (() -> Void)?
     var onHostDisappear: (() -> Void)?
     var onLayoutChange: (() -> Void)?
+    private var showsArrows = true
     private var style = HintStyle()
     private let closeButton = UIButton(type: .system)
     private let messageScroll = UIScrollView()
     private var messageHeight: NSLayoutConstraint!
     private var iconWidth: NSLayoutConstraint!
 
-    static func make(hint: Hint, style: HintStyle) -> HintViewController? {
+    static func make(hint: Hint, style: HintStyle, showsArrows: Bool = true) -> HintViewController? {
         let bundle = HintResources.bundle
         guard bundle.url(forResource: "Main", withExtension: "storyboardc") != nil
         else { return nil }
@@ -44,6 +45,7 @@ final class HintViewController: UIViewController, UIGestureRecognizerDelegate {
         else { return nil }
         controller.hint = hint
         controller.style = style
+        controller.showsArrows = showsArrows
         controller.loadViewIfNeeded()
         return controller
     }
@@ -152,7 +154,7 @@ final class HintViewController: UIViewController, UIGestureRecognizerDelegate {
     }
 
     private func setArrows(_ tags: [Int]) {
-        arrows.forEach { $0.alpha = tags.contains($0.tag) ? 1 : 0 }
+        arrows.forEach { $0.alpha = showsArrows && tags.contains($0.tag) ? 1 : 0 }
         let rows = Set(arrows.compactMap { $0.superview as? UIStackView })
         for row in rows {
             row.semanticContentAttribute = .forceLeftToRight

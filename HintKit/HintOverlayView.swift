@@ -3,12 +3,20 @@ import UIKit
 @MainActor
 final class HintOverlayView: UIView {
     var onLayout: (() -> Void)?
+    private let bubble = CAShapeLayer()
     private let highlight = CAShapeLayer()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         autoresizingMask = [.flexibleWidth, .flexibleHeight]
         backgroundColor = .clear
+        bubble.name = "HintKit.bubble"
+        bubble.isHidden = true
+        bubble.shadowColor = UIColor.black.cgColor
+        bubble.shadowOpacity = 0.14
+        bubble.shadowRadius = 8
+        bubble.shadowOffset = CGSize(width: 0, height: 3)
+        layer.addSublayer(bubble)
         highlight.fillColor = UIColor.clear.cgColor
         highlight.lineWidth = 2
         layer.addSublayer(highlight)
@@ -34,6 +42,16 @@ final class HintOverlayView: UIView {
         highlight.strokeColor = color.cgColor
         highlight.path = UIBezierPath(roundedRect: frame.insetBy(dx: -3, dy: -3),
                                       cornerRadius: 8).cgPath
+        CATransaction.commit()
+    }
+
+    func updateBubble(_ geometry: HintBubbleGeometry?, color: UIColor) {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        bubble.isHidden = geometry == nil
+        bubble.fillColor = color.cgColor
+        bubble.path = geometry?.path()
+        bubble.shadowPath = bubble.path
         CATransaction.commit()
     }
 

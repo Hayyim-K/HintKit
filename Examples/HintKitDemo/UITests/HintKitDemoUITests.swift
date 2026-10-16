@@ -19,4 +19,21 @@ final class HintKitDemoUITests: XCTestCase {
         attachment.lifetime = .keepAlways
         add(attachment)
     }
+    func testPointerModesCanBeSelectedWithoutBlockingThePhotoButton() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-HintKitDemoResetHistory"]
+        app.launch()
+        let modes = app.segmentedControls["demo.pointer"]
+        XCTAssertTrue(modes.waitForExistence(timeout: 10))
+        for name in ["Tail", "Arrows", "Both", "None"] {
+            modes.buttons[name].tap()
+            XCTAssertTrue(app.staticTexts["Choose a photo"].waitForExistence(timeout: 5))
+            XCTAssertTrue(app.buttons["demo.photo"].isHittable)
+            let attachment = XCTAttachment(screenshot: app.screenshot())
+            attachment.name = "HintKit pointer \(name)"
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        }
+    }
+
 }

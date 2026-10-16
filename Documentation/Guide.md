@@ -1,5 +1,9 @@
 # Integrating HintKit
 
+This checkout prepares version **0.2.0**. The published package is still
+**0.1.0**. Bubble-tail examples below require this local checkout until the
+0.2.0 release is published. Existing API calls keep their default behavior.
+
 This guide uses a photo-selection button as an example. The same steps apply
 to any UIKit button, image view, or other view in the current screen.
 
@@ -138,6 +142,56 @@ The card occupies part of the screen; touches in empty overlay areas pass
 through to the underlying interface. Its target outline does not change the
 target view's transform. Reduce Motion disables fading and pulsing.
 
+### Add a bubble tail (0.2.0 development)
+
+Opt in to a curved tail that joins the card background and points to its target:
+
+```swift
+hints.show(
+    Hint(id: "photo.choose", title: "Choose a photo", message: "Tap here."),
+    near: photoButton,
+    in: self,
+    sourcePoint: CGPoint(x: photoButton.bounds.midX, y: photoButton.bounds.minY),
+    options: HintOptions(placement: .above, pointerStyle: .tail)
+)
+```
+
+`sourcePoint` is optional. It is expressed in the target view's own coordinates
+and must be inside `sourceRect` (or `target.bounds` when no rectangle is given).
+Without a point, the tail aims at the nearest edge of the visible anchor region.
+`sourceRect` still controls the region used for placement and highlighting, so a
+precise tip does not require a zero-sized rectangle or a separate invisible view.
+
+| `HintOptions.pointerStyle` | Presentation |
+| --- | --- |
+| `.arrows` | Existing SF Symbol arrows; the default for existing callers. |
+| `.tail` | A curved tail attached to the card background. |
+| `.tailAndArrows` | Both the tail and the existing arrows. |
+| `.none` | No pointer decoration. |
+
+`highlightsTarget` independently controls the target outline in all four modes.
+Existing `Hint.arrows` tags and JSON files keep their original meaning.
+
+Cards can prefer `.above`, `.below`, `.left`, or `.right`. In automatic tail mode,
+HintKit first tries above/below, then the horizontal sides if there is too little
+vertical room. Existing automatic arrow mode continues to use above/below.
+Left/right are physical directions and are not mirrored by RTL text layout.
+
+Use `HintStyle(tailLength: 14, tailWidth: 26)` to change the tail's dimensions in
+points. `tailLength` reserves additional space between card and anchor, on top
+of `anchorSpacing`. An explicit point deeper inside the target can make the
+actual tail longer. The base stays clear of rounded corners; the tip keeps its
+exact target position even when the card has to shift near a screen edge.
+
+The tail and card use one background path, including with translucent colors.
+They remain nonmodal: the tail never intercepts touches or becomes a separate
+VoiceOver element. Movement, scrolling, appearance changes, dismissal, and
+`withHintsHidden` cover the entire bubble. A clipped/offscreen exact point
+causes the hint to close rather than leave a detached pointer.
+
+These additions are in the current checkout and are not part of the published
+0.1.0 tag. Use the local package to try them before the next release.
+
 ## 6. Exclude guidance from exported images
 
 Wrap the app's synchronous screenshot operation:
@@ -149,7 +203,7 @@ let image = hints.withHintsHidden {
 ```
 
 `renderPostcard()` represents your existing rendering function. The closure
-hides HintKit's card and outline, then restores them, including after an error
+hides HintKit's card, tail, and outline, then restores them, including after an error
 or nested calls. It does not hide other UI supplied by the app. It is intended
 for synchronous rendering; do not schedule capture for later inside it.
 
@@ -160,7 +214,8 @@ Clone this repository and open
 and an iPhone or iPad simulator, then run. The demo uses the package from this
 checkout through a relative local dependency.
 
-Tap Photo, Palette, and Save, try the close button, then replay help. Reset
+Try the Tail / Arrows / Both / None selector. Tap Photo, Palette, and Save,
+try the close button, then replay help. Reset
 demo history affects only the demo's namespace. The demo does not access the
 photo library or save real images.
 

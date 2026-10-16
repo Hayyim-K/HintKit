@@ -33,21 +33,22 @@ public final class HintPresenter: NSObject {
 
     /// Returns false when another hint is active, the policy rejects the hint,
     /// or its host/anchor cannot safely display a card. Call after viewDidAppear.
+    /// sourcePoint is an optional exact tail tip in target coordinates, inside sourceRect or target.bounds.
     @discardableResult
     public func show(_ hint: Hint, near target: UIView, in host: UIViewController,
-                     sourceRect: CGRect? = nil, options: HintOptions = HintOptions(),
+                     sourceRect: CGRect? = nil, sourcePoint: CGPoint? = nil, options: HintOptions = HintOptions(),
                      onDismiss: ((HintDismissalReason) -> Void)? = nil) -> Bool {
         guard current == nil else { return false }
         return present(HintRequest(hint: hint, target: target, host: host,
-                                   sourceRect: sourceRect, options: options, callback: onDismiss))
+                                   sourceRect: sourceRect, sourcePoint: sourcePoint, options: options, callback: onDismiss))
     }
 
     /// Shows eligible queued hints in order. Requests hold host and target weakly.
     public func enqueue(_ hint: Hint, near target: UIView, in host: UIViewController,
-                        sourceRect: CGRect? = nil, options: HintOptions = HintOptions(),
+                        sourceRect: CGRect? = nil, sourcePoint: CGPoint? = nil, options: HintOptions = HintOptions(),
                         onDismiss: ((HintDismissalReason) -> Void)? = nil) {
         pending.append(HintRequest(hint: hint, target: target, host: host,
-                                   sourceRect: sourceRect, options: options, callback: onDismiss))
+                                   sourceRect: sourceRect, sourcePoint: sourcePoint, options: options, callback: onDismiss))
         advanceQueue()
     }
 
@@ -96,6 +97,7 @@ public final class HintPresenter: NSObject {
 
     /// Excludes cards and highlights from synchronous screenshot/export work.
     /// Nested calls are supported, including when the operation throws.
+    /// Attached bubble tails are excluded with the rest of the overlay.
     public func withHintsHidden<Result>(_ operation: () throws -> Result) rethrows -> Result {
         captureDepth += 1
         current?.overlay.isHidden = true
@@ -114,14 +116,17 @@ public final class HintPresenter: NSObject {
 
     private func present(_ request: HintRequest) -> Bool {
         guard !request.hint.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-              [style.maximumWidth, style.screenMargin, style.anchorSpacing, style.cornerRadius].allSatisfy(\.isFinite),
-              style.cornerRadius >= 0,
+              [style.maximumWidth, style.screenMargin, style.anchorSpacing, style.cornerRadius,
+               style.tailLength, style.tailWidth].allSatisfy(\.isFinite),
+              style.cornerRadius >= 0, style.tailLength > 0, style.tailWidth > 0,
               store.shouldDisplay(request.hint.id, policy: request.options.displayPolicy),
               let host = request.host, let target = request.target,
               canPresent(host: host, target: target),
-              let card = HintViewController.make(hint: request.hint, style: style)
+              let card = HintViewController.make(hint: request.hint, style: style,
+                                                  showsArrows: request.options.pointerStyle.hasArrows)
         else { return false }
         host.view.layoutIfNeeded()
+        if request.options.pointerStyle.hasTail { card.view.backgroundColor = .clear }
         let overlay = HintOverlayView(frame: host.view.bounds)
         let session = HintSession(request: request, card: card, overlay: overlay)
         guard layout(session) else { return false }
@@ -148,8 +153,8 @@ public final class HintPresenter: NSObject {
         displayLink = link
         overlay.configureHighlight(animated: request.options.animates)
         if request.options.animates && !UIAccessibility.isReduceMotionEnabled {
-            card.view.alpha = 0
-            UIView.animate(withDuration: 0.15) { card.view.alpha = 1 }
+            overlay.alpha = 0
+            UIView.animate(withDuration: 0.15) { overlay.alpha = 1 }
         }
         onShow?(request.hint)
         if current === session && captureDepth == 0 && request.options.announcesForVoiceOver
@@ -184,23 +189,39 @@ public final class HintPresenter: NSObject {
         else { return false }
         let bounds = host.view.bounds
         let offset = CGPoint(x: -bounds.minX, y: -bounds.minY)
-        let anchor = target.convert(source, to: host.view).offsetBy(dx: offset.x, dy: offset.y)
+        let fullAnchor = target.convert(source, to: host.view).offsetBy(dx: offset.x, dy: offset.y)
+        var anchor = fullAnchor
+        var point: CGPoint?
+        if let sourcePoint = session.request.sourcePoint {
+            guard sourcePoint.x.isFinite, sourcePoint.y.isFinite,
+                  sourcePoint.x >= source.minX, sourcePoint.x <= source.maxX,
+                  sourcePoint.y >= source.minY, sourcePoint.y <= source.maxY else { return false }
+            let converted = target.convert(sourcePoint, to: host.view)
+            point = CGPoint(x: converted.x + offset.x, y: converted.y + offset.y)
+        }
         let margin = style.screenMargin
         guard style.maximumWidth.isFinite, margin.isFinite, style.anchorSpacing.isFinite,
               style.maximumWidth > 0, margin >= 0, style.anchorSpacing >= 0 else { return false }
         let safe = host.view.safeAreaLayoutGuide.layoutFrame
             .offsetBy(dx: offset.x, dy: offset.y).insetBy(dx: margin, dy: margin)
-        guard !safe.isEmpty, anchor.intersects(CGRect(origin: .zero, size: bounds.size)) else { return false }
+        let visibleBounds = CGRect(origin: .zero, size: bounds.size)
+        guard !safe.isEmpty, anchor.intersects(visibleBounds) else { return false }
+        var visibleAnchor = anchor.intersection(visibleBounds)
+        if let point, !visibleBounds.contains(point) { return false }
         // A scrolled-out anchor must not leave a detached hint on screen.
         var ancestor = target.superview
         while let view = ancestor, view !== host.view {
-            if view.clipsToBounds && !target.convert(source, to: view).intersects(view.bounds) {
-                return false
+            if view.clipsToBounds {
+                let clip = view.convert(view.bounds, to: host.view).offsetBy(dx: offset.x, dy: offset.y)
+                visibleAnchor = visibleAnchor.intersection(clip)
+                guard !visibleAnchor.isNull, !visibleAnchor.isEmpty else { return false }
+                if let point, !clip.contains(point) { return false }
             }
             ancestor = view.superview
         }
 
-        let key = HintLayoutKey(bounds: bounds, anchor: anchor, safe: safe,
+        if session.request.options.pointerStyle.hasTail { anchor = visibleAnchor }
+        let key = HintLayoutKey(bounds: bounds, anchor: anchor, point: point, safe: safe,
                                 category: session.card.traitCollection.preferredContentSizeCategory.rawValue)
         if session.layoutKey == key {
             session.overlay.updateHighlight(frame: anchor,
@@ -209,16 +230,23 @@ public final class HintPresenter: NSObject {
             return true
         }
 
-        let geometry = HintGeometry(anchor: anchor, safeBounds: safe, spacing: style.anchorSpacing)
-        let width = min(style.maximumWidth, safe.width)
-        for placement in geometry.placements(preferred: session.request.options.placement) {
+        let hasTail = session.request.options.pointerStyle.hasTail
+        let geometry = HintGeometry(anchor: anchor, safeBounds: safe,
+                                    spacing: style.anchorSpacing + (hasTail ? style.tailLength : 0))
+        for placement in geometry.placements(preferred: session.request.options.placement,
+                                              allowsHorizontal: hasTail) {
+            let width = min(style.maximumWidth, geometry.availableWidth(for: placement))
             session.card.setAutomaticArrow(placement == .above ? 4 : 1)
             guard let size = session.card.fittingSize(width: width,
                                                        maximumHeight: geometry.availableHeight(for: placement)),
                   let frame = geometry.frame(size: size, placement: placement) else { continue }
-            session.card.setAutomaticArrow(geometry.arrowTag(frame: frame, placement: placement))
+            session.card.setAutomaticArrow(geometry.arrowTag(frame: frame, placement: placement, point: point))
             session.overlay.frame = bounds
             session.card.view.frame = frame
+            let bubble = hasTail ? HintBubbleGeometry(frame: frame, tip: point ?? geometry.tip(for: placement),
+                placement: placement, cornerRadius: style.cornerRadius, tailWidth: style.tailWidth) : nil
+            session.card.view.layer.cornerRadius = bubble?.radius ?? style.cornerRadius
+            session.overlay.updateBubble(bubble, color: style.backgroundColor.resolvedColor(with: host.traitCollection))
             session.overlay.updateHighlight(frame: anchor,
                 color: style.tintColor.resolvedColor(with: host.traitCollection),
                 visible: session.request.options.highlightsTarget)
@@ -260,15 +288,17 @@ private final class HintRequest {
     weak var target: UIView?
     weak var host: UIViewController?
     let sourceRect: CGRect?
+    let sourcePoint: CGPoint?
     let options: HintOptions
     let callback: ((HintDismissalReason) -> Void)?
 
-    init(hint: Hint, target: UIView, host: UIViewController, sourceRect: CGRect?,
+    init(hint: Hint, target: UIView, host: UIViewController, sourceRect: CGRect?, sourcePoint: CGPoint?,
          options: HintOptions, callback: ((HintDismissalReason) -> Void)?) {
         self.hint = hint
         self.target = target
         self.host = host
         self.sourceRect = sourceRect
+        self.sourcePoint = sourcePoint
         self.options = options
         self.callback = callback
     }
@@ -304,6 +334,7 @@ private final class HintSession {
 private struct HintLayoutKey: Equatable {
     let bounds: CGRect
     let anchor: CGRect
+    let point: CGPoint?
     let safe: CGRect
     let category: String
 }

@@ -1,5 +1,8 @@
 # HintKit
 
+This branch prepares **HintKit 0.2.0**. The current published release is
+**0.1.0**; the 0.2.0 additions will be released after review.
+
 Contextual, nonmodal UIKit hints for iOS 15 and later. The same implementation
 works across supported iOS versions, without an Apple TipKit dependency.
 
@@ -12,7 +15,7 @@ the content and decides when an action has actually succeeded.
   <img src="Documentation/Images/demo-dark.png" width="260" alt="HintKit demo in dark appearance">
 </p>
 
-- Anchored cards with automatic arrows and safe-area placement.
+- Anchored cards with automatic arrows, optional curved bubble tails, and safe-area placement.
 - One visible hint at a time, with an optional queue and completion history.
 - Customizable appearance and an optional animated target outline.
 - Dynamic Type, VoiceOver, Reduce Motion, and right-to-left text support.
@@ -55,6 +58,9 @@ Open `Examples/HintKitDemo/HintKitDemo.xcodeproj`, select the shared
 as a local Swift package. Tap Photo, Palette, and Save to complete the sequence.
 Show help again replays hints without resetting history. Reset demo history
 affects only the demo's HintKit namespace.
+
+Use the Tail / Arrows / Both / None selector to compare pointer styles.
+The demo starts with Tail; the library default remains Arrows.
 
 The demo simulates these actions; it does not choose or save real photos.
 
@@ -111,7 +117,7 @@ history. The target must belong to the host's view hierarchy and window.
 
 Cards are child view controllers inside the host, not modal presentations.
 Empty overlay areas pass touches through to the existing interface. The card
-is placed above or below the anchor, within the safe area. Descriptions scroll
+is placed within the safe area, above or below the anchor by default. Descriptions scroll
 when necessary. A display link tracks movement and scrolling of the target;
 the card closes if its anchor disappears. Keyboard appearance, app inactivity,
 and host disappearance cancel active and pending hints.
@@ -119,6 +125,58 @@ and host disappearance cancel active and pending hints.
 For a large view, `sourceRect` can specify a smaller anchor region in that
 view's coordinates. `HintOptions.placement` expresses a preference; the other
 side is used if it is the only side with enough space.
+
+## Bubble tails and exact targets (0.2.0 development)
+
+<img src="Documentation/Images/demo-tail.png" width="280" alt="HintKit card with an attached curved tail pointing to the photo button">
+
+Opt in to a curved tail that joins the card background and points to its target:
+
+```swift
+hints.show(
+    Hint(id: "photo.choose", title: "Choose a photo", message: "Tap here."),
+    near: photoButton,
+    in: self,
+    sourcePoint: CGPoint(x: photoButton.bounds.midX, y: photoButton.bounds.minY),
+    options: HintOptions(placement: .above, pointerStyle: .tail)
+)
+```
+
+`sourcePoint` is optional. It is expressed in the target view's own coordinates
+and must be inside `sourceRect` (or `target.bounds` when no rectangle is given).
+Without a point, the tail aims at the nearest edge of the visible anchor region.
+`sourceRect` still controls the region used for placement and highlighting, so a
+precise tip does not require a zero-sized rectangle or a separate invisible view.
+
+| `HintOptions.pointerStyle` | Presentation |
+| --- | --- |
+| `.arrows` | Existing SF Symbol arrows; the default for existing callers. |
+| `.tail` | A curved tail attached to the card background. |
+| `.tailAndArrows` | Both the tail and the existing arrows. |
+| `.none` | No pointer decoration. |
+
+`highlightsTarget` independently controls the target outline in all four modes.
+Existing `Hint.arrows` tags and JSON files keep their original meaning.
+
+Cards can prefer `.above`, `.below`, `.left`, or `.right`. In automatic tail mode,
+HintKit first tries above/below, then the horizontal sides if there is too little
+vertical room. Existing automatic arrow mode continues to use above/below.
+Left/right are physical directions and are not mirrored by RTL text layout.
+
+Use `HintStyle(tailLength: 14, tailWidth: 26)` to change the tail's dimensions in
+points. `tailLength` reserves additional space between card and anchor, on top
+of `anchorSpacing`. An explicit point deeper inside the target can make the
+actual tail longer. The base stays clear of rounded corners; the tip keeps its
+exact target position even when the card has to shift near a screen edge.
+
+The tail and card use one background path, including with translucent colors.
+They remain nonmodal: the tail never intercepts touches or becomes a separate
+VoiceOver element. Movement, scrolling, appearance changes, dismissal, and
+`withHintsHidden` cover the entire bubble. A clipped/offscreen exact point
+causes the hint to close rather than leave a detached pointer.
+
+These additions are in the current checkout and are not part of the published
+0.1.0 tag. Use the local package to try them before the next release.
 
 ## Queue and history
 
