@@ -6,6 +6,10 @@ checkout until the 0.2.0 release is published. Existing API calls compile
 unchanged. The new default appearance animation expands from the target;
 select `.fade` for the previous fade-only effect.
 
+Already using 0.1.0? Start with the README's
+[upgrade instructions](../README.md#updating-from-010), including preview versus
+release installation, dependency rules, and preserving existing behavior.
+
 This guide uses a photo-selection button as an example. The same steps apply
 to any UIKit button, image view, or other view in the current screen.
 

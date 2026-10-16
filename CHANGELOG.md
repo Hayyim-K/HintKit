@@ -13,6 +13,8 @@
 - Gentle appearance from the target point by default, with configurable duration,
   fade-only and immediate alternatives, and Reduce Motion support.
 - Paper and Night demo themes, styling/animation tests, and configuration guides.
+- README upgrade guide from 0.1.0, with preview/release installation, compatibility
+  notes, and integration checks.
 
 ## 0.1.0 — 2026-10-14
 

@@ -2,6 +2,8 @@
 
 This branch prepares **HintKit 0.2.0**. The current published release is
 **0.1.0**; the 0.2.0 additions will be released after review.
+See [what is new](#whats-new-in-020-preview) and the
+[upgrade instructions](#updating-from-010) before changing an existing dependency.
 
 Contextual, nonmodal UIKit hints for iOS 15 and later. The same implementation
 works across supported iOS versions, without an Apple TipKit dependency.
@@ -34,6 +36,27 @@ storyboard. The package manifest uses Swift tools version 5.9.
 
 For a step-by-step integration walkthrough, see the [integration guide](Documentation/Guide.md).
 
+## What's new in 0.2.0 (preview)
+
+| Feature | How to use it |
+| --- | --- |
+| Curved bubble tails | Set `HintOptions(pointerStyle: .tail)`; `.tailAndArrows` combines both decorations. |
+| An exact target point | Pass `sourcePoint` to `show` or `enqueue`, in the target view's coordinates. |
+| Four-sided placement | Choose `.above`, `.below`, `.left`, or `.right`; placement falls back when needed to fit the safe area. |
+| Custom typography | Set `HintStyle.titleFont` and `messageFont`; Dynamic Type scaling remains enabled by default. |
+| Card borders and shadows | Supply `HintBorder` and `HintShadow.custom`; the border follows the card and tail together. |
+| Appearance from the target | Use `.fromAnchor` (the new default), `.fade`, or `.none`, with a configurable duration. |
+
+Background, text, tint colors, and corner radius are configurable too. See
+[bubble tails and targeting](#bubble-tails-and-exact-targets-020-development)
+and [appearance examples](#appearance-and-export) for code and screenshots.
+The demo includes System, Paper, and Night themes.
+
+The library still supports iOS 15 and later without Apple TipKit. Existing
+`show`, `enqueue`, JSON catalogs, history policies, and export calls remain
+available. The intentional default behavior change is the appearance animation;
+the upgrade instructions below show how to retain the previous motion.
+
 ## Install with Swift Package Manager
 
 In Xcode, choose **File → Add Package Dependencies**, enter
@@ -50,6 +73,94 @@ dependencies: [
 
 Add `.product(name: "HintKit", package: "HintKit")` to your target's dependencies.
 The package includes its storyboard and localized resources automatically.
+
+## Updating from 0.1.0
+
+### Choose a release or the preview
+
+**For a released dependency:** 0.1.0 is currently the published release.
+The new APIs are in `october-improvements` and [Draft PR #1](https://github.com/Hayyim-K/HintKit/pull/1).
+Updating a version-based dependency today will not install these changes.
+Even after the PR is merged, a 0.2.0 release tag is needed for version-based
+installation.
+
+**To try the preview now:** in Xcode's project settings, select HintKit under
+Package Dependencies and set its dependency rule to Branch:
+`october-improvements`. Alternatively, use this requirement in `Package.swift`:
+
+```swift
+.package(url: "https://github.com/Hayyim-K/HintKit.git", branch: "october-improvements")
+```
+
+The preview branch can change during review. You can also clone that branch
+and add its root as a local package, as described in
+[Add to an app](#add-to-an-app). Replace the existing dependency rather than
+adding a second copy of HintKit. Let Xcode resolve the dependency and rebuild
+the consuming app before using the new APIs.
+
+**After 0.2.0 is published:** select the new version in Xcode's dependency rule
+and update the package. An Exact Version rule pinned to 0.1.0 must be changed;
+it will not advance automatically. With a version range, ensure the range
+allows 0.2.0, then update to the latest permitted version. In a package
+manifest, the released requirement can be:
+
+```swift
+.package(url: "https://github.com/Hayyim-K/HintKit.git", from: "0.2.0")
+```
+
+Use that version requirement only after the release tag exists. If you tried
+the preview, switch its Branch rule back to a version rule for release use.
+Review and commit the resulting `Package.resolved` change if your app tracks
+that file; do not edit it by hand.
+
+For a local package or embedded Xcode framework, update its checkout to the
+chosen revision and rebuild the app and framework together. Do not install
+both the framework and Swift package into the same app target.
+
+### Keep existing behavior or enable the new features
+
+No source migration is required for existing calls: new initializer arguments
+have defaults. Symbol arrows remain the default pointer. Fonts remain system
+headline/body unless supplied, and borders remain off unless supplied.
+Existing plain cards remain unshadowed with `shadow: .automatic`.
+
+The new default appearance is a gentle expansion from the target over 0.22
+seconds. To keep the 0.1.0 fade-only appearance and its 0.15-second duration,
+pass these options to `show` or `enqueue`:
+
+```swift
+let options = HintOptions(
+    appearanceAnimation: .fade,
+    animationDuration: 0.15
+)
+hints.show(photoHint, near: photoButton, in: self, options: options)
+```
+
+If you already configure `HintOptions`, add those two arguments to your
+existing options to preserve its policy and other settings. `animates: false`
+still disables appearance and outline animation; Reduce Motion is respected.
+
+To adopt the new behavior, keep the defaults and opt in to the decorations
+you want, such as `pointerStyle: .tail`. Configure fonts, borders, and shadows
+in the presenter's `HintStyle`. A style belongs to its presenter; create a
+new presenter with the same store when switching themes.
+
+Keep the same hint IDs, `HintStore` namespace, and UserDefaults suite to retain
+learning history. Updating the library does not require clearing history or
+changing JSON catalogs. Call `markCompleted` after a successful feature action
+and keep wrapping image capture in `withHintsHidden` as before.
+
+### Verify the integration
+
+Run your normal hint flow, replay help, and confirm that the highlighted
+control can still be tapped. Check long localized text, large Dynamic Type,
+light/dark appearance, and Reduce Motion. If you export images, confirm that
+cards, tails, outlines, borders, and shadows are absent from the export.
+
+For troubleshooting, first check the resolved dependency: code using
+`HintBorder`, `HintShadow`, `sourcePoint`, or `appearanceAnimation` will not
+compile against 0.1.0. A missing automatic hint can also be an existing history
+policy; use `.always` to replay it without deleting the user's history.
 
 ## Try the demo
 
