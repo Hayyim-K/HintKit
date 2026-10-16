@@ -3,8 +3,8 @@
 This checkout prepares version **0.2.0**. The published package is still
 **0.1.0**. Bubble-tail and advanced styling examples below require this local
 checkout until the 0.2.0 release is published. Existing API calls compile
-unchanged. The new default appearance animation expands from the target;
-select `.fade` for the previous fade-only effect.
+unchanged. Defaults retain the released colors, fonts, and 0.15-second fade;
+select `.fromAnchor` to opt in to expansion from the target.
 
 Already using 0.1.0? Start with the README's
 [upgrade instructions](../README.md#updating-from-010), including preview versus
@@ -238,10 +238,11 @@ let options = HintOptions(
 hints.show(photoHint, near: photoButton, in: self, options: options)
 ```
 
-`.fromAnchor` is the default: the entire card fades in and gently expands
+`.fade` over 0.15 seconds remains the default. With `.fromAnchor`, the entire
+card fades in and gently expands
 from the target point. A supplied `sourcePoint` pins the animation to that
 exact point; otherwise the nearest edge of the anchor is used. The highlight
-stays fixed. Select `.fade` for fade-only appearance, or `.none` for immediate
+stays fixed. Keep `.fade` for fade-only appearance, or choose `.none` for immediate
 appearance. `animates: false` disables appearance and highlight animations;
 zero duration disables only appearance motion. Reduce Motion disables both.
 

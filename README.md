@@ -45,7 +45,7 @@ For a step-by-step integration walkthrough, see the [integration guide](Document
 | Four-sided placement | Choose `.above`, `.below`, `.left`, or `.right`; placement falls back when needed to fit the safe area. |
 | Custom typography | Set `HintStyle.titleFont` and `messageFont`; Dynamic Type scaling remains enabled by default. |
 | Card borders and shadows | Supply `HintBorder` and `HintShadow.custom`; the border follows the card and tail together. |
-| Appearance from the target | Use `.fromAnchor` (the new default), `.fade`, or `.none`, with a configurable duration. |
+| Appearance from the target | Opt in to `.fromAnchor`, keep the default `.fade`, or choose `.none`, with a configurable duration. |
 
 Background, text, tint colors, and corner radius are configurable too. See
 [bubble tails and targeting](#bubble-tails-and-exact-targets-020-development)
@@ -54,8 +54,8 @@ The demo includes System, Paper, and Night themes.
 
 The library still supports iOS 15 and later without Apple TipKit. Existing
 `show`, `enqueue`, JSON catalogs, history policies, and export calls remain
-available. The intentional default behavior change is the appearance animation;
-the upgrade instructions below show how to retain the previous motion.
+available. Colors, fonts, borders, and appearance motion keep their released
+defaults; the new options are enabled explicitly.
 
 ## Install with Swift Package Manager
 
@@ -124,14 +124,14 @@ have defaults. Symbol arrows remain the default pointer. Fonts remain system
 headline/body unless supplied, and borders remain off unless supplied.
 Existing plain cards remain unshadowed with `shadow: .automatic`.
 
-The new default appearance is a gentle expansion from the target over 0.22
-seconds. To keep the 0.1.0 fade-only appearance and its 0.15-second duration,
-pass these options to `show` or `enqueue`:
+The default remains the 0.1.0 fade-only appearance over 0.15 seconds. No motion
+configuration is required when updating. To opt in to expansion from the
+target, pass these options to `show` or `enqueue`:
 
 ```swift
 let options = HintOptions(
-    appearanceAnimation: .fade,
-    animationDuration: 0.15
+    appearanceAnimation: .fromAnchor,
+    animationDuration: 0.22
 )
 hints.show(photoHint, near: photoButton, in: self, options: options)
 ```
@@ -140,8 +140,7 @@ If you already configure `HintOptions`, add those two arguments to your
 existing options to preserve its policy and other settings. `animates: false`
 still disables appearance and outline animation; Reduce Motion is respected.
 
-To adopt the new behavior, keep the defaults and opt in to the decorations
-you want, such as `pointerStyle: .tail`. Configure fonts, borders, and shadows
+Opt in to the decorations you want, such as `pointerStyle: .tail`. Configure fonts, borders, and shadows
 in the presenter's `HintStyle`. A style belongs to its presenter; create a
 new presenter with the same store when switching themes.
 
@@ -399,7 +398,8 @@ shadow. Shadows do not clip the text or intercept touches.
 
 ### Appearance animation (0.2.0 development)
 
-Cards now gently expand from the target while fading in over 0.22 seconds.
+Cards retain fade-only appearance over 0.15 seconds by default. Opt in to a
+gentle expansion from the target with `.fromAnchor`, as shown below.
 An explicit `sourcePoint` is also the animation's origin. The background,
 tail, border, shadow, and content move together; the target outline stays fixed.
 Configure motion per presentation:
@@ -413,11 +413,11 @@ let options = HintOptions(
 hints.show(photoHint, near: photoButton, in: self, options: options)
 ```
 
-Choose `.fade` for the previous fade-only effect or `.none` for immediate
+Keep `.fade` for the default fade-only effect or choose `.none` for immediate
 appearance. `animates: false` disables both appearance motion and outline
 pulsing; a zero duration disables appearance motion only. Reduce Motion
-disables all these animations. Existing calls compile unchanged; `.fromAnchor`
-is the new default appearance animation in 0.2.0.
+disables all these animations. Existing calls compile unchanged; expansion
+from the anchor is enabled explicitly.
 
 The highlight animates a separate layer, without modifying the target's
 transform. Visible hints can be

@@ -10,8 +10,8 @@
 - Existing callers retain the automatic symbol-arrow presentation by default.
 - Custom title/message fonts with optional Dynamic Type scaling, silhouette
   borders, and automatic, disabled, or fully configurable shadows.
-- Gentle appearance from the target point by default, with configurable duration,
-  fade-only and immediate alternatives, and Reduce Motion support.
+- Optional appearance from the target point, configurable duration, immediate
+  appearance, and Reduce Motion support; the default remains the released 0.15s fade.
 - Paper and Night demo themes, styling/animation tests, and configuration guides.
 - README upgrade guide from 0.1.0, with preview/release installation, compatibility
   notes, and integration checks.

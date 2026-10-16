@@ -25,8 +25,9 @@ the entire card silhouette, including the tail. ``HintShadow`` supports an
 automatic default, no shadow, or custom color, opacity, radius, and offset.
 
 ``HintAppearanceAnimation`` controls appearance through ``HintOptions``.
-The default `fromAnchor` gently expands and fades the card from its target
-over 0.22 seconds; `fade` retains fade-only motion and `none` shows it immediately.
+The default `fade` retains the released 0.15-second appearance. Opt in to
+`fromAnchor` to gently expand and fade the card from its target, or choose
+`none` to show it immediately.
 The duration is configurable, `animates` remains the master switch, and Reduce
 Motion disables appearance and highlight animations.
 

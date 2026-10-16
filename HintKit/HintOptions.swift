@@ -61,8 +61,8 @@ public struct HintOptions: Sendable {
                 displayPolicy: HintDisplayPolicy = .untilDismissed,
                 highlightsTarget: Bool = true, animates: Bool = true,
                 announcesForVoiceOver: Bool = true, pointerStyle: HintPointerStyle = .arrows,
-                appearanceAnimation: HintAppearanceAnimation = .fromAnchor,
-                animationDuration: TimeInterval = 0.22) {
+                appearanceAnimation: HintAppearanceAnimation = .fade,
+                animationDuration: TimeInterval = 0.15) {
         self.placement = placement
         self.pointerStyle = pointerStyle
         self.appearanceAnimation = appearanceAnimation

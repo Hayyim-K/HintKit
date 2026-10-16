@@ -4,6 +4,36 @@ import XCTest
 
 final class HintStyleTests: XCTestCase {
     @MainActor
+    func testDefaultsPreserveTheReleasedAppearance() {
+        let style = HintStyle()
+        let options = HintOptions()
+        XCTAssertEqual(style.backgroundColor, .secondarySystemBackground)
+        XCTAssertEqual(style.foregroundColor, .label)
+        XCTAssertEqual(style.tintColor, .systemBlue)
+        XCTAssertEqual(style.maximumWidth, 320)
+        XCTAssertEqual(style.screenMargin, 12)
+        XCTAssertEqual(style.anchorSpacing, 8)
+        XCTAssertEqual(style.cornerRadius, 20)
+        XCTAssertNil(style.titleFont)
+        XCTAssertNil(style.messageFont)
+        XCTAssertNil(style.border)
+        XCTAssertTrue(style.scalesFontsForContentSizeCategory)
+        let traits = UITraitCollection(preferredContentSizeCategory: .large)
+        for textStyle in [UIFont.TextStyle.headline, .body] {
+            XCTAssertEqual(style.font(for: textStyle, compatibleWith: traits),
+                           UIFont.preferredFont(forTextStyle: textStyle, compatibleWith: traits))
+        }
+        if case .automatic = style.shadow {} else { XCTFail("Default shadow must preserve the legacy card") }
+        XCTAssertEqual(options.pointerStyle, .arrows)
+        XCTAssertEqual(options.appearanceAnimation, .fade)
+        XCTAssertEqual(options.animationDuration, 0.15)
+        XCTAssertEqual(options.displayPolicy, .untilDismissed)
+        XCTAssertTrue(options.highlightsTarget)
+        XCTAssertTrue(options.animates)
+        XCTAssertTrue(options.announcesForVoiceOver)
+    }
+
+    @MainActor
     private func fixture(style: HintStyle) -> (UIWindow, UIViewController, UIButton, HintPresenter) {
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 375, height: 667))
         let host = UIViewController()
