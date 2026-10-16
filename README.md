@@ -61,6 +61,7 @@ affects only the demo's HintKit namespace.
 
 Use the Tail / Arrows / Both / None selector to compare pointer styles.
 The demo starts with Tail; the library default remains Arrows.
+Use System / Paper / Night to compare fonts, backgrounds, borders, and shadows.
 
 The demo simulates these actions; it does not choose or save real photos.
 
@@ -250,13 +251,65 @@ remain tied to physical anchor coordinates in right-to-left interfaces.
 
 ## Appearance and export
 
+Pass a `HintStyle` when creating the presenter. It applies to that presenter's
+cards, including every pointer mode:
+
 ```swift
-let style = HintStyle(maximumWidth: 300, tintColor: .systemOrange)
+let style = HintStyle(
+    maximumWidth: 300,
+    cornerRadius: 24,
+    backgroundColor: .secondarySystemBackground,
+    foregroundColor: .label,
+    tintColor: .systemOrange,
+    titleFont: .systemFont(ofSize: 19, weight: .bold),
+    messageFont: .systemFont(ofSize: 17),
+    border: HintBorder(color: .systemOrange, width: 1.5),
+    shadow: .custom(color: .black, opacity: 0.2, radius: 10,
+                    offset: CGSize(width: 0, height: 4))
+)
 let hints = HintPresenter(style: style)
 ```
 
+Custom fonts use unscaled base sizes at the standard Large text category.
+HintKit scales them with `UIFontMetrics`; pass
+`scalesFontsForContentSizeCategory: false` to keep their sizes fixed. `nil`
+fonts retain the system headline/body styles. Dynamic colors follow the host's
+light/dark appearance, including the border and shadow.
+
+Borders follow the whole silhouette, including a tail, and draw inside it.
+Omit `border` for no outline. `shadow: .none` removes the shadow; the default
+`.automatic` keeps plain arrow cards unshadowed and gives tail cards a subtle
+shadow. Shadows do not clip the text or intercept touches.
+
+<p>
+  <img src="Documentation/Images/demo-paper.png" width="260" alt="Paper theme with serif fonts, a warm background, border, and shadow">
+  <img src="Documentation/Images/demo-night.png" width="260" alt="Night theme with custom fonts, a dark background, and teal border">
+</p>
+
+### Appearance animation (0.2.0 development)
+
+Cards now gently expand from the target while fading in over 0.22 seconds.
+An explicit `sourcePoint` is also the animation's origin. The background,
+tail, border, shadow, and content move together; the target outline stays fixed.
+Configure motion per presentation:
+
+```swift
+let options = HintOptions(
+    pointerStyle: .tail,
+    appearanceAnimation: .fromAnchor,
+    animationDuration: 0.22
+)
+hints.show(photoHint, near: photoButton, in: self, options: options)
+```
+
+Choose `.fade` for the previous fade-only effect or `.none` for immediate
+appearance. `animates: false` disables both appearance motion and outline
+pulsing; a zero duration disables appearance motion only. Reduce Motion
+disables all these animations. Existing calls compile unchanged; `.fromAnchor`
+is the new default appearance animation in 0.2.0.
+
 The highlight animates a separate layer, without modifying the target's
-transform. Reduce Motion disables fading and pulsing. Visible hints can be
+transform. Visible hints can be
 announced to VoiceOver; disable this per presentation with
 `announcesForVoiceOver: false` when the app provides its own announcement.
 
@@ -291,8 +344,8 @@ cancellation, and export visibility.
 The Xcode test targets use iOS 17 or later to match the XCTest runtime in the
 current SDK. The HintKit library and demo app still support iOS 15.
 
-The demo also has a UI test that taps the highlighted controls, closes a card,
-and replays help through the real app interface:
+The demo UI tests tap the highlighted controls, close a card, replay help,
+and switch pointer modes and themes through the real app interface:
 
 ```sh
 xcodebuild -project Examples/HintKitDemo/HintKitDemo.xcodeproj \
@@ -306,6 +359,9 @@ Adjust the destination and architecture for your Mac and installed simulators.
 The initial release was verified with all 19 tests in both distribution forms
 on iOS 17.5, the demo UI test on iOS 26.2, and an unsigned Release build for an
 iPhone destination. Direct runtime verification on iOS 15 is still pending.
+The 0.2.0 development branch adds coverage for tails, styling, and animation:
+39 framework tests on iOS 17.5 and 3 demo UI tests on iOS 26.2 passed. The demo
+build verifies the local Swift package and its resources.
 
 ## Contributing
 

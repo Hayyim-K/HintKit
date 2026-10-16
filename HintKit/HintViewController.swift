@@ -74,7 +74,7 @@ final class HintViewController: UIViewController, UIGestureRecognizerDelegate {
         arrows.forEach { $0.alpha = hint.arrows.contains ($0.tag) ? 1 : 0 }
 
         view.accessibilityIdentifier = "HintKit.card.\(hint.id)"
-        view.backgroundColor = style.backgroundColor
+        view.backgroundColor = .clear
         view.layer.cornerRadius = max(0, style.cornerRadius)
         view.clipsToBounds = true
         view.tintColor = style.tintColor
@@ -84,10 +84,10 @@ final class HintViewController: UIViewController, UIGestureRecognizerDelegate {
         messageLabel.numberOfLines = 0
         titleLabel.textColor = style.foregroundColor
         messageLabel.textColor = style.foregroundColor
-        titleLabel.adjustsFontForContentSizeCategory = true
-        messageLabel.adjustsFontForContentSizeCategory = true
-        titleLabel.font = .preferredFont(forTextStyle: .headline)
-        messageLabel.font = .preferredFont(forTextStyle: .body)
+        titleLabel.adjustsFontForContentSizeCategory = style.scalesFontsForContentSizeCategory
+        messageLabel.adjustsFontForContentSizeCategory = style.scalesFontsForContentSizeCategory
+        titleLabel.font = style.font(for: .headline, compatibleWith: traitCollection)
+        messageLabel.font = style.font(for: .body, compatibleWith: traitCollection)
         titleLabel.isHidden = hint.title.isEmpty
 
         guard let textStack = titleLabel.superview as? UIStackView,
@@ -169,8 +169,8 @@ final class HintViewController: UIViewController, UIGestureRecognizerDelegate {
 
     func fittingSize(width: CGFloat, maximumHeight: CGFloat) -> CGSize? {
         guard width >= 96, maximumHeight > 0 else { return nil }
-        titleLabel.font = .preferredFont(forTextStyle: .headline, compatibleWith: traitCollection)
-        messageLabel.font = .preferredFont(forTextStyle: .body, compatibleWith: traitCollection)
+        titleLabel.font = style.font(for: .headline, compatibleWith: traitCollection)
+        messageLabel.font = style.font(for: .body, compatibleWith: traitCollection)
         let iconSpace: CGFloat = infoImageView.isHidden ? 0 : 48
         let textWidth = max(1, width - 24 - iconSpace)
         titleLabel.preferredMaxLayoutWidth = max(1, textWidth - 52)

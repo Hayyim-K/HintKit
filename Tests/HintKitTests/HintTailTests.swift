@@ -51,9 +51,9 @@ final class HintTailTests: XCTestCase {
         XCTAssertTrue(presenter.show(Hint(id: "legacy", message: "Tap here"), near: target, in: host,
                                      options: options(.arrows)))
         XCTAssertEqual(HintOptions().pointerStyle, .arrows)
-        XCTAssertTrue(try bubble(host).isHidden)
+        XCTAssertEqual(try XCTUnwrap(bubble(host).path).boundingBoxOfPath, try card(host).frame)
         XCTAssertEqual(visibleArrows(try card(host)).count, 1)
-        XCTAssertNotEqual(try card(host).backgroundColor, UIColor.clear)
+        XCTAssertEqual(try bubble(host).shadowOpacity, 0)
     }
 
     @MainActor
@@ -88,7 +88,7 @@ final class HintTailTests: XCTestCase {
         XCTAssertEqual(Set(visibleArrows(try card(host)).map(\.tag)), [0, 5])
         presenter.cancelAll()
         XCTAssertTrue(presenter.show(hint, near: target, in: host, options: options(.none)))
-        XCTAssertTrue(try bubble(host).isHidden)
+        XCTAssertEqual(try XCTUnwrap(bubble(host).path).boundingBoxOfPath, try card(host).frame)
         XCTAssertTrue(visibleArrows(try card(host)).isEmpty)
     }
 

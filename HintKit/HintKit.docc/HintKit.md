@@ -19,6 +19,17 @@ An optional `sourcePoint` in the target view's coordinates pins the tail tip to
 an exact point. Placement supports all four sides, while target highlighting
 remains an independent option. Tails are nonmodal and hidden during exports.
 
+Customize background, text, and tint colors with ``HintStyle``. Optional title
+and message fonts scale through Dynamic Type by default. ``HintBorder`` follows
+the entire card silhouette, including the tail. ``HintShadow`` supports an
+automatic default, no shadow, or custom color, opacity, radius, and offset.
+
+``HintAppearanceAnimation`` controls appearance through ``HintOptions``.
+The default `fromAnchor` gently expands and fades the card from its target
+over 0.22 seconds; `fade` retains fade-only motion and `none` shows it immediately.
+The duration is configurable, `animates` remains the master switch, and Reduce
+Motion disables appearance and highlight animations.
+
 ## Topics
 
 ### Content and presentation
@@ -29,6 +40,12 @@ remains an independent option. Tails are nonmodal and hidden during exports.
 - ``HintStyle``
 - ``HintPointerStyle``
 - ``HintPlacement``
+
+### Appearance
+
+- ``HintBorder``
+- ``HintShadow``
+- ``HintAppearanceAnimation``
 
 ### History and catalogs
 

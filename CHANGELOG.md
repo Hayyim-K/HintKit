@@ -8,6 +8,11 @@
   dynamic colors, movement tracking, and export exclusion for the entire bubble.
 - Demo pointer-style selector, integration examples, and tail regression tests.
 - Existing callers retain the automatic symbol-arrow presentation by default.
+- Custom title/message fonts with optional Dynamic Type scaling, silhouette
+  borders, and automatic, disabled, or fully configurable shadows.
+- Gentle appearance from the target point by default, with configurable duration,
+  fade-only and immediate alternatives, and Reduce Motion support.
+- Paper and Night demo themes, styling/animation tests, and configuration guides.
 
 ## 0.1.0 — 2026-10-14
 

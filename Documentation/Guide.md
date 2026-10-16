@@ -1,8 +1,10 @@
 # Integrating HintKit
 
 This checkout prepares version **0.2.0**. The published package is still
-**0.1.0**. Bubble-tail examples below require this local checkout until the
-0.2.0 release is published. Existing API calls keep their default behavior.
+**0.1.0**. Bubble-tail and advanced styling examples below require this local
+checkout until the 0.2.0 release is published. Existing API calls compile
+unchanged. The new default appearance animation expands from the target;
+select `.fade` for the previous fade-only effect.
 
 This guide uses a photo-selection button as an example. The same steps apply
 to any UIKit button, image view, or other view in the current screen.
@@ -140,7 +142,7 @@ scroll. If neither side has enough space for a readable card, `show` returns
 
 The card occupies part of the screen; touches in empty overlay areas pass
 through to the underlying interface. Its target outline does not change the
-target view's transform. Reduce Motion disables fading and pulsing.
+target view's transform. Reduce Motion disables appearance motion and pulsing.
 
 ### Add a bubble tail (0.2.0 development)
 
@@ -192,6 +194,53 @@ causes the hint to close rather than leave a detached pointer.
 These additions are in the current checkout and are not part of the published
 0.1.0 tag. Use the local package to try them before the next release.
 
+### Customize fonts, borders, and shadows (0.2.0 development)
+
+```swift
+let style = HintStyle(
+    cornerRadius: 24,
+    backgroundColor: .secondarySystemBackground,
+    foregroundColor: .label,
+    tintColor: .systemTeal,
+    titleFont: .systemFont(ofSize: 19, weight: .bold),
+    messageFont: .systemFont(ofSize: 17),
+    border: HintBorder(color: .systemTeal, width: 1.5),
+    shadow: .custom(color: .black, opacity: 0.2, radius: 10,
+                    offset: CGSize(width: 0, height: 4))
+)
+let hints = HintPresenter(style: style)
+```
+
+Use base fonts at the standard Large text category, without pre-scaling them.
+HintKit scales custom fonts with `UIFontMetrics` and remeasures the card when
+Dynamic Type changes. Set `scalesFontsForContentSizeCategory: false` to keep
+font sizes fixed. Omit custom fonts to retain system headline/body styles.
+
+The border uses point units and follows the entire card and tail. Omit it for
+no border. Shadows accept a color, opacity from 0 through 1, blur radius, and
+offset. `.none` disables shadows. The default `.automatic` preserves plain
+cards without a shadow and the subtle shadow for tails. Dynamic `UIColor`
+values update with the host's appearance. A style is shared by one presenter;
+create a presenter with a different style for another screen or theme.
+
+### Configure appearance motion (0.2.0 development)
+
+```swift
+let options = HintOptions(
+    pointerStyle: .tail,
+    appearanceAnimation: .fromAnchor,
+    animationDuration: 0.22
+)
+hints.show(photoHint, near: photoButton, in: self, options: options)
+```
+
+`.fromAnchor` is the default: the entire card fades in and gently expands
+from the target point. A supplied `sourcePoint` pins the animation to that
+exact point; otherwise the nearest edge of the anchor is used. The highlight
+stays fixed. Select `.fade` for fade-only appearance, or `.none` for immediate
+appearance. `animates: false` disables appearance and highlight animations;
+zero duration disables only appearance motion. Reduce Motion disables both.
+
 ## 6. Exclude guidance from exported images
 
 Wrap the app's synchronous screenshot operation:
@@ -214,7 +263,8 @@ Clone this repository and open
 and an iPhone or iPad simulator, then run. The demo uses the package from this
 checkout through a relative local dependency.
 
-Try the Tail / Arrows / Both / None selector. Tap Photo, Palette, and Save,
+Try the Tail / Arrows / Both / None selector and System / Paper / Night themes.
+Tap Photo, Palette, and Save,
 try the close button, then replay help. Reset
 demo history affects only the demo's namespace. The demo does not access the
 photo library or save real images.

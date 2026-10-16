@@ -55,6 +55,7 @@ public final class HintPresenter: NSObject {
     public func dismiss(reason: HintDismissalReason = .programmatic, animated: Bool = true) {
         guard let session = current, !session.isDismissing else { return }
         session.isDismissing = true
+        session.overlay.finishAppearance()
         session.overlay.isUserInteractionEnabled = false
         session.card.onDismiss = nil
         session.card.onHostDisappear = nil
@@ -100,10 +101,10 @@ public final class HintPresenter: NSObject {
     /// Attached bubble tails are excluded with the rest of the overlay.
     public func withHintsHidden<Result>(_ operation: () throws -> Result) rethrows -> Result {
         captureDepth += 1
-        current?.overlay.isHidden = true
+        current?.overlay.setHintsHidden(true)
         defer {
             captureDepth -= 1
-            if captureDepth == 0 { current?.overlay.isHidden = false }
+            if captureDepth == 0 { current?.overlay.setHintsHidden(false) }
         }
         return try operation()
     }
@@ -116,9 +117,8 @@ public final class HintPresenter: NSObject {
 
     private func present(_ request: HintRequest) -> Bool {
         guard !request.hint.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-              [style.maximumWidth, style.screenMargin, style.anchorSpacing, style.cornerRadius,
-               style.tailLength, style.tailWidth].allSatisfy(\.isFinite),
-              style.cornerRadius >= 0, style.tailLength > 0, style.tailWidth > 0,
+              style.isValid, request.options.animationDuration.isFinite,
+              request.options.animationDuration >= 0,
               store.shouldDisplay(request.hint.id, policy: request.options.displayPolicy),
               let host = request.host, let target = request.target,
               canPresent(host: host, target: target),
@@ -126,7 +126,6 @@ public final class HintPresenter: NSObject {
                                                   showsArrows: request.options.pointerStyle.hasArrows)
         else { return false }
         host.view.layoutIfNeeded()
-        if request.options.pointerStyle.hasTail { card.view.backgroundColor = .clear }
         let overlay = HintOverlayView(frame: host.view.bounds)
         let session = HintSession(request: request, card: card, overlay: overlay)
         guard layout(session) else { return false }
@@ -134,9 +133,9 @@ public final class HintPresenter: NSObject {
         current = session
         host.addChild(card)
         host.view.addSubview(overlay)
-        overlay.addSubview(card.view)
+        overlay.content.addSubview(card.view)
         card.didMove(toParent: host)
-        overlay.isHidden = captureDepth > 0
+        overlay.setHintsHidden(captureDepth > 0)
         card.onDismiss = { [weak self] in self?.dismiss(reason: .userDismissed) }
         card.onHostDisappear = { [weak self] in self?.cancelAll() }
         card.onLayoutChange = { [weak self] in
@@ -152,10 +151,7 @@ public final class HintPresenter: NSObject {
         link.add(to: .main, forMode: .common)
         displayLink = link
         overlay.configureHighlight(animated: request.options.animates)
-        if request.options.animates && !UIAccessibility.isReduceMotionEnabled {
-            overlay.alpha = 0
-            UIView.animate(withDuration: 0.15) { overlay.alpha = 1 }
-        }
+        overlay.animateAppearance(from: session.appearanceOrigin, options: request.options)
         onShow?(request.hint)
         if current === session && captureDepth == 0 && request.options.announcesForVoiceOver
             && UIAccessibility.isVoiceOverRunning {
@@ -230,6 +226,7 @@ public final class HintPresenter: NSObject {
             return true
         }
 
+        session.overlay.finishAppearance()
         let hasTail = session.request.options.pointerStyle.hasTail
         let geometry = HintGeometry(anchor: anchor, safeBounds: safe,
                                     spacing: style.anchorSpacing + (hasTail ? style.tailLength : 0))
@@ -246,7 +243,8 @@ public final class HintPresenter: NSObject {
             let bubble = hasTail ? HintBubbleGeometry(frame: frame, tip: point ?? geometry.tip(for: placement),
                 placement: placement, cornerRadius: style.cornerRadius, tailWidth: style.tailWidth) : nil
             session.card.view.layer.cornerRadius = bubble?.radius ?? style.cornerRadius
-            session.overlay.updateBubble(bubble, color: style.backgroundColor.resolvedColor(with: host.traitCollection))
+            session.overlay.updateBubble(bubble, frame: frame, style: style, traits: host.traitCollection)
+            session.appearanceOrigin = point ?? geometry.tip(for: placement)
             session.overlay.updateHighlight(frame: anchor,
                 color: style.tintColor.resolvedColor(with: host.traitCollection),
                 visible: session.request.options.highlightsTarget)
@@ -312,6 +310,7 @@ private final class HintSession {
     var isDismissing = false
     var isLayingOut = false
     var layoutKey: HintLayoutKey?
+    var appearanceOrigin = CGPoint.zero
 
     init(request: HintRequest, card: HintViewController, overlay: HintOverlayView) {
         self.request = request
@@ -320,6 +319,7 @@ private final class HintSession {
     }
 
     func remove() {
+        overlay.finishAppearance()
         card.onDismiss = nil
         card.onHostDisappear = nil
         card.onLayoutChange = nil
