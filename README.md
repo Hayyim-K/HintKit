@@ -1,8 +1,7 @@
 # HintKit
 
-This branch prepares **HintKit 0.2.0**. The current published release is
-**0.1.0**; the 0.2.0 additions will be released after review.
-See [what is new](#whats-new-in-020-preview) and the
+**Latest release: [HintKit 0.2.0](https://github.com/Hayyim-K/HintKit/releases/tag/v0.2.0).**
+See [what is new](#whats-new-in-020) and the
 [upgrade instructions](#updating-from-010) before changing an existing dependency.
 
 Contextual, nonmodal UIKit hints for iOS 15 and later. The same implementation
@@ -36,7 +35,7 @@ storyboard. The package manifest uses Swift tools version 5.9.
 
 For a step-by-step integration walkthrough, see the [integration guide](Documentation/Guide.md).
 
-## What's new in 0.2.0 (preview)
+## What's new in 0.2.0
 
 | Feature | How to use it |
 | --- | --- |
@@ -46,9 +45,10 @@ For a step-by-step integration walkthrough, see the [integration guide](Document
 | Custom typography | Set `HintStyle.titleFont` and `messageFont`; Dynamic Type scaling remains enabled by default. |
 | Card borders and shadows | Supply `HintBorder` and `HintShadow.custom`; the border follows the card and tail together. |
 | Appearance from the target | Opt in to `.fromAnchor`, keep the default `.fade`, or choose `.none`, with a configurable duration. |
+| Refreshed card layout | A larger icon is centered beside a title and description on a shared text axis; no extra configuration is needed. |
 
 Background, text, tint colors, and corner radius are configurable too. See
-[bubble tails and targeting](#bubble-tails-and-exact-targets-020-development)
+[bubble tails and targeting](#bubble-tails-and-exact-targets)
 and [appearance examples](#appearance-and-export) for code and screenshots.
 The demo includes System, Paper, and Night themes.
 
@@ -56,18 +56,20 @@ The library still supports iOS 15 and later without Apple TipKit. Existing
 `show`, `enqueue`, JSON catalogs, history policies, and export calls remain
 available. Colors, fonts, borders, and appearance motion keep their released
 defaults; the new options are enabled explicitly.
+The refreshed card layout is the new default: it enlarges and centers the
+icon, centers the text column, and moves the close control out of the title row.
 
 ## Install with Swift Package Manager
 
 In Xcode, choose **File → Add Package Dependencies**, enter
-`https://github.com/Hayyim-K/HintKit.git`, and select version **0.1.0** or later.
+`https://github.com/Hayyim-K/HintKit.git`, and select version **0.2.0** or later.
 Add the **HintKit** library product to your app target.
 
 For a package manifest:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/Hayyim-K/HintKit.git", from: "0.1.0")
+    .package(url: "https://github.com/Hayyim-K/HintKit.git", from: "0.2.0")
 ]
 ```
 
@@ -76,46 +78,29 @@ The package includes its storyboard and localized resources automatically.
 
 ## Updating from 0.1.0
 
-### Choose a release or the preview
+### Update the dependency
 
-**For a released dependency:** 0.1.0 is currently the published release.
-The new APIs are in `october-improvements` and [Draft PR #1](https://github.com/Hayyim-K/HintKit/pull/1).
-Updating a version-based dependency today will not install these changes.
-Even after the PR is merged, a 0.2.0 release tag is needed for version-based
-installation.
+In Xcode's project settings, select HintKit under Package Dependencies and
+choose version **0.2.0** or a version range that includes it. Update the
+package and rebuild the consuming app.
 
-**To try the preview now:** in Xcode's project settings, select HintKit under
-Package Dependencies and set its dependency rule to Branch:
-`october-improvements`. Alternatively, use this requirement in `Package.swift`:
-
-```swift
-.package(url: "https://github.com/Hayyim-K/HintKit.git", branch: "october-improvements")
-```
-
-The preview branch can change during review. You can also clone that branch
-and add its root as a local package, as described in
-[Add to an app](#add-to-an-app). Replace the existing dependency rather than
-adding a second copy of HintKit. Let Xcode resolve the dependency and rebuild
-the consuming app before using the new APIs.
-
-**After 0.2.0 is published:** select the new version in Xcode's dependency rule
-and update the package. An Exact Version rule pinned to 0.1.0 must be changed;
-it will not advance automatically. With a version range, ensure the range
-allows 0.2.0, then update to the latest permitted version. In a package
-manifest, the released requirement can be:
+An Exact Version rule pinned to 0.1.0 must be changed; it will not advance
+automatically. With a version range, update to the latest permitted version.
+For a package manifest, use:
 
 ```swift
 .package(url: "https://github.com/Hayyim-K/HintKit.git", from: "0.2.0")
 ```
 
-Use that version requirement only after the release tag exists. If you tried
-the preview, switch its Branch rule back to a version rule for release use.
-Review and commit the resulting `Package.resolved` change if your app tracks
-that file; do not edit it by hand.
+If you tried the `october-improvements` preview branch, switch its Branch
+rule back to a version rule selecting 0.2.0. Replace the existing dependency
+rather than adding a second copy of HintKit. Let Xcode resolve the new version;
+review and commit the resulting `Package.resolved` change if your app tracks
+that file. Do not edit that file by hand.
 
-For a local package or embedded Xcode framework, update its checkout to the
-chosen revision and rebuild the app and framework together. Do not install
-both the framework and Swift package into the same app target.
+For a local package or embedded Xcode framework, update its checkout to
+`v0.2.0` and rebuild the app and framework together. Do not install both the
+framework and Swift package into the same app target.
 
 ### Keep existing behavior or enable the new features
 
@@ -123,6 +108,12 @@ No source migration is required for existing calls: new initializer arguments
 have defaults. Symbol arrows remain the default pointer. Fonts remain system
 headline/body unless supplied, and borders remain off unless supplied.
 Existing plain cards remain unshadowed with `shadow: .automatic`.
+The card's layout is refreshed by default, while these style values stay the
+same. Icons use up to 60 points (20% of the card width on narrower cards),
+and the title and description share a centered text column. Symbol alignment
+insets are normalized so changing the icon does not shift its frame. The
+corner close control retains a 44-point touch target without taking space
+from the title row. Long descriptions still scroll.
 
 The default remains the 0.1.0 fade-only appearance over 0.15 seconds. No motion
 configuration is required when updating. To opt in to expansion from the
@@ -237,7 +228,7 @@ For a large view, `sourceRect` can specify a smaller anchor region in that
 view's coordinates. `HintOptions.placement` expresses a preference; the other
 side is used if it is the only side with enough space.
 
-## Bubble tails and exact targets (0.2.0 development)
+## Bubble tails and exact targets
 
 <img src="Documentation/Images/demo-tail.png" width="280" alt="HintKit card with an attached curved tail pointing to the photo button">
 
@@ -286,8 +277,7 @@ VoiceOver element. Movement, scrolling, appearance changes, dismissal, and
 `withHintsHidden` cover the entire bubble. A clipped/offscreen exact point
 causes the hint to close rather than leave a detached pointer.
 
-These additions are in the current checkout and are not part of the published
-0.1.0 tag. Use the local package to try them before the next release.
+These APIs are available in version 0.2.0 and later.
 
 ## Queue and history
 
@@ -396,7 +386,7 @@ shadow. Shadows do not clip the text or intercept touches.
   <img src="Documentation/Images/demo-night.png" width="260" alt="Night theme with custom fonts, a dark background, and teal border">
 </p>
 
-### Appearance animation (0.2.0 development)
+### Appearance animation
 
 Cards retain fade-only appearance over 0.15 seconds by default. Opt in to a
 gentle expansion from the target with `.fromAnchor`, as shown below.
@@ -470,9 +460,10 @@ Adjust the destination and architecture for your Mac and installed simulators.
 The initial release was verified with all 19 tests in both distribution forms
 on iOS 17.5, the demo UI test on iOS 26.2, and an unsigned Release build for an
 iPhone destination. Direct runtime verification on iOS 15 is still pending.
-The 0.2.0 development branch adds coverage for tails, styling, and animation:
-39 framework tests on iOS 17.5 and 3 demo UI tests on iOS 26.2 passed. The demo
-build verifies the local Swift package and its resources.
+Version 0.2.0 adds coverage for tails, styling, and animation:
+44 framework tests on iOS 17.5 and 3 demo UI tests on iOS 26.2 passed, with
+the theme-switching UI test also repeated in dark appearance. The demo build
+verifies the local Swift package and its resources.
 
 ## Contributing
 

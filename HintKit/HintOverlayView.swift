@@ -101,9 +101,10 @@ final class HintOverlayView: UIView {
     }
 
     func animateAppearance(from origin: CGPoint, options: HintOptions,
-                           reduceMotion: Bool = UIAccessibility.isReduceMotionEnabled) {
+                           reduceMotion: Bool? = nil) {
         finishAppearance()
-        guard options.animates, !reduceMotion, options.animationDuration > 0,
+        let reducesMotion = reduceMotion ?? UIAccessibility.isReduceMotionEnabled
+        guard options.animates, !reducesMotion, options.animationDuration > 0,
               options.appearanceAnimation != .none else { return }
         content.alpha = 0
         if options.appearanceAnimation == .fromAnchor {

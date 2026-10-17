@@ -31,6 +31,11 @@ The default `fade` retains the released 0.15-second appearance. Opt in to
 The duration is configurable, `animates` remains the master switch, and Reduce
 Motion disables appearance and highlight animations.
 
+The default card layout centers a larger icon beside the title and description.
+The close control sits separately in the corner, and long descriptions can
+scroll. The refreshed layout retains the released colors and system fonts
+unless a custom style is supplied.
+
 ## Topics
 
 ### Content and presentation

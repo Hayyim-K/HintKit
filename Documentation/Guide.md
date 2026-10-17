@@ -1,14 +1,13 @@
 # Integrating HintKit
 
-This checkout prepares version **0.2.0**. The published package is still
-**0.1.0**. Bubble-tail and advanced styling examples below require this local
-checkout until the 0.2.0 release is published. Existing API calls compile
-unchanged. Defaults retain the released colors, fonts, and 0.15-second fade;
-select `.fromAnchor` to opt in to expansion from the target.
+This guide covers **HintKit 0.2.0**, including bubble tails, advanced styling,
+and the refreshed card layout. Existing API calls compile unchanged. Defaults
+retain the released colors, fonts, and 0.15-second fade; select `.fromAnchor`
+to opt in to expansion from the target.
 
 Already using 0.1.0? Start with the README's
-[upgrade instructions](../README.md#updating-from-010), including preview versus
-release installation, dependency rules, and preserving existing behavior.
+[upgrade instructions](../README.md#updating-from-010), including dependency
+rules, preserving history, and the default layout changes.
 
 This guide uses a photo-selection button as an example. The same steps apply
 to any UIKit button, image view, or other view in the current screen.
@@ -16,7 +15,7 @@ to any UIKit button, image view, or other view in the current screen.
 ## 1. Add the package
 
 Add `https://github.com/Hayyim-K/HintKit.git` in Xcode's **File → Add Package
-Dependencies** dialog, choose version 0.1.0 or later, and link the HintKit
+Dependencies** dialog, choose version 0.2.0 or later, and link the HintKit
 product to the app target. Your app's minimum iOS version must be 15 or later.
 
 ## 2. Keep one presenter for the screen
@@ -144,11 +143,18 @@ Text supports Dynamic Type and natural writing direction. Long descriptions
 scroll. If neither side has enough space for a readable card, `show` returns
 `false`. Prefer short explanations, especially at accessibility text sizes.
 
+The default card layout uses a larger icon centered beside the text block,
+with the title and description aligned on the same center. The icon grows to
+60 points and adapts to 20% of the card width on narrower cards. A separate
+corner close control keeps a 44-point touch target. The released default
+colors, system fonts, lack of border, and fade animation remain unchanged;
+custom styling still applies to this refreshed layout.
+
 The card occupies part of the screen; touches in empty overlay areas pass
 through to the underlying interface. Its target outline does not change the
 target view's transform. Reduce Motion disables appearance motion and pulsing.
 
-### Add a bubble tail (0.2.0 development)
+### Add a bubble tail
 
 Opt in to a curved tail that joins the card background and points to its target:
 
@@ -195,10 +201,9 @@ VoiceOver element. Movement, scrolling, appearance changes, dismissal, and
 `withHintsHidden` cover the entire bubble. A clipped/offscreen exact point
 causes the hint to close rather than leave a detached pointer.
 
-These additions are in the current checkout and are not part of the published
-0.1.0 tag. Use the local package to try them before the next release.
+These APIs are available in version 0.2.0 and later.
 
-### Customize fonts, borders, and shadows (0.2.0 development)
+### Customize fonts, borders, and shadows
 
 ```swift
 let style = HintStyle(
@@ -227,7 +232,7 @@ cards without a shadow and the subtle shadow for tails. Dynamic `UIColor`
 values update with the host's appearance. A style is shared by one presenter;
 create a presenter with a different style for another screen or theme.
 
-### Configure appearance motion (0.2.0 development)
+### Configure appearance motion
 
 ```swift
 let options = HintOptions(
