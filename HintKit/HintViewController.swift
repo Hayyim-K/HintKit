@@ -28,13 +28,16 @@ final class HintViewController: UIViewController, UIGestureRecognizerDelegate {
     var onDismiss: (() -> Void)?
     var onHostDisappear: (() -> Void)?
     var onLayoutChange: (() -> Void)?
+    private var showsArrows = true
     private var style = HintStyle()
     private let closeButton = UIButton(type: .system)
     private let messageScroll = UIScrollView()
     private var messageHeight: NSLayoutConstraint!
     private var iconWidth: NSLayoutConstraint!
+    private let iconSpacing: CGFloat = 12
+    private let titleInset: CGFloat = 24
 
-    static func make(hint: Hint, style: HintStyle) -> HintViewController? {
+    static func make(hint: Hint, style: HintStyle, showsArrows: Bool = true) -> HintViewController? {
         let bundle = HintResources.bundle
         guard bundle.url(forResource: "Main", withExtension: "storyboardc") != nil
         else { return nil }
@@ -44,6 +47,7 @@ final class HintViewController: UIViewController, UIGestureRecognizerDelegate {
         else { return nil }
         controller.hint = hint
         controller.style = style
+        controller.showsArrows = showsArrows
         controller.loadViewIfNeeded()
         return controller
     }
@@ -67,25 +71,26 @@ final class HintViewController: UIViewController, UIGestureRecognizerDelegate {
         guard let hint else { return }
         titleLabel.text = hint.title
         messageLabel.text = hint.message
-        infoImageView.image = UIImage(systemName: hint.imageName)
+        // Normalize symbol alignment so different images keep the same square and center.
+        infoImageView.image = UIImage(systemName: hint.imageName)?.withAlignmentRectInsets(.zero)
         //        for arrow in arrows { arrow.alpha = hint.arrows.contains()}
         arrows.forEach { $0.alpha = hint.arrows.contains ($0.tag) ? 1 : 0 }
 
         view.accessibilityIdentifier = "HintKit.card.\(hint.id)"
-        view.backgroundColor = style.backgroundColor
+        view.backgroundColor = .clear
         view.layer.cornerRadius = max(0, style.cornerRadius)
         view.clipsToBounds = true
         view.tintColor = style.tintColor
-        titleLabel.textAlignment = .natural
-        messageLabel.textAlignment = .natural
+        titleLabel.textAlignment = .center
+        messageLabel.textAlignment = .center
         titleLabel.numberOfLines = 0
         messageLabel.numberOfLines = 0
         titleLabel.textColor = style.foregroundColor
         messageLabel.textColor = style.foregroundColor
-        titleLabel.adjustsFontForContentSizeCategory = true
-        messageLabel.adjustsFontForContentSizeCategory = true
-        titleLabel.font = .preferredFont(forTextStyle: .headline)
-        messageLabel.font = .preferredFont(forTextStyle: .body)
+        titleLabel.adjustsFontForContentSizeCategory = style.scalesFontsForContentSizeCategory
+        messageLabel.adjustsFontForContentSizeCategory = style.scalesFontsForContentSizeCategory
+        titleLabel.font = style.font(for: .headline, compatibleWith: traitCollection)
+        messageLabel.font = style.font(for: .body, compatibleWith: traitCollection)
         titleLabel.isHidden = hint.title.isEmpty
 
         guard let textStack = titleLabel.superview as? UIStackView,
@@ -95,24 +100,37 @@ final class HintViewController: UIViewController, UIGestureRecognizerDelegate {
         rootStack.spacing = 8
         contentStack.isUserInteractionEnabled = true
         contentStack.distribution = .fill
-        contentStack.alignment = .top
-        contentStack.spacing = 8
+        contentStack.alignment = .center
+        contentStack.spacing = iconSpacing
         textStack.distribution = .fill
-        textStack.spacing = 6
+        textStack.spacing = 8
+        textStack.isLayoutMarginsRelativeArrangement = true
+        textStack.directionalLayoutMargins = NSDirectionalEdgeInsets(
+            top: hint.title.isEmpty ? 36 : 0, leading: 0, bottom: 0, trailing: 0)
 
         // Keep the existing labels while adding an accessible close control.
         textStack.removeArrangedSubview(titleLabel)
         titleLabel.removeFromSuperview()
-        let header = UIStackView(arrangedSubviews: [titleLabel, closeButton])
-        header.alignment = .top
-        header.spacing = 8
+        let header = UIStackView(arrangedSubviews: [titleLabel])
+        header.isHidden = hint.title.isEmpty
+        header.isLayoutMarginsRelativeArrangement = true
+        header.directionalLayoutMargins = NSDirectionalEdgeInsets(
+            top: 0, leading: titleInset, bottom: 0, trailing: titleInset)
         textStack.insertArrangedSubview(header, at: 0)
+        // Keep the close control out of the text layout so the title and message share a center.
+        closeButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(closeButton)
         closeButton.setImage(UIImage(systemName: "xmark"), for: .normal)
         closeButton.accessibilityLabel = style.closeAccessibilityLabel
         closeButton.accessibilityIdentifier = "HintKit.close"
         closeButton.addTarget(self, action: #selector(hidTipsVC), for: .touchUpInside)
-        closeButton.widthAnchor.constraint(equalToConstant: 44).isActive = true
-        closeButton.heightAnchor.constraint(equalToConstant: 44).isActive = true
+        closeButton.setPreferredSymbolConfiguration(UIImage.SymbolConfiguration(pointSize: 14, weight: .semibold), forImageIn: .normal)
+        NSLayoutConstraint.activate([
+            closeButton.widthAnchor.constraint(equalToConstant: 44),
+            closeButton.heightAnchor.constraint(equalToConstant: 44),
+            closeButton.topAnchor.constraint(equalTo: contentStack.topAnchor, constant: -10),
+            closeButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -2)
+        ])
 
         // Long descriptions scroll instead of being truncated at five lines.
         textStack.removeArrangedSubview(messageLabel)
@@ -137,7 +155,9 @@ final class HintViewController: UIViewController, UIGestureRecognizerDelegate {
         for constraint in view.constraints where constraint.firstItem as? UIView === infoImageView {
             if constraint.firstAttribute == .width { constraint.isActive = false }
         }
-        iconWidth = infoImageView.widthAnchor.constraint(equalToConstant: 40)
+        iconWidth = infoImageView.widthAnchor.constraint(equalToConstant: 60)
+        infoImageView.contentMode = .scaleAspectFit
+        infoImageView.isAccessibilityElement = false
         infoImageView.isHidden = infoImageView.image == nil
         iconWidth.isActive = !infoImageView.isHidden
         for arrow in arrows { arrow.semanticContentAttribute = .forceLeftToRight }
@@ -152,7 +172,7 @@ final class HintViewController: UIViewController, UIGestureRecognizerDelegate {
     }
 
     private func setArrows(_ tags: [Int]) {
-        arrows.forEach { $0.alpha = tags.contains($0.tag) ? 1 : 0 }
+        arrows.forEach { $0.alpha = showsArrows && tags.contains($0.tag) ? 1 : 0 }
         let rows = Set(arrows.compactMap { $0.superview as? UIStackView })
         for row in rows {
             row.semanticContentAttribute = .forceLeftToRight
@@ -167,11 +187,13 @@ final class HintViewController: UIViewController, UIGestureRecognizerDelegate {
 
     func fittingSize(width: CGFloat, maximumHeight: CGFloat) -> CGSize? {
         guard width >= 96, maximumHeight > 0 else { return nil }
-        titleLabel.font = .preferredFont(forTextStyle: .headline, compatibleWith: traitCollection)
-        messageLabel.font = .preferredFont(forTextStyle: .body, compatibleWith: traitCollection)
-        let iconSpace: CGFloat = infoImageView.isHidden ? 0 : 48
+        titleLabel.font = style.font(for: .headline, compatibleWith: traitCollection)
+        messageLabel.font = style.font(for: .body, compatibleWith: traitCollection)
+        // Match the game's generous icon column, shrinking only when the card itself is narrow.
+        iconWidth.constant = min(60, width * 0.2)
+        let iconSpace: CGFloat = infoImageView.isHidden ? 0 : iconWidth.constant + iconSpacing
         let textWidth = max(1, width - 24 - iconSpace)
-        titleLabel.preferredMaxLayoutWidth = max(1, textWidth - 52)
+        titleLabel.preferredMaxLayoutWidth = max(1, textWidth - titleInset * 2)
         messageLabel.preferredMaxLayoutWidth = textWidth
         let fullMessageHeight = ceil(messageLabel.sizeThatFits(
             CGSize(width: textWidth, height: .greatestFiniteMagnitude)).height)

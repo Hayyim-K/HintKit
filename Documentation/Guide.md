@@ -1,12 +1,21 @@
 # Integrating HintKit
 
+This guide covers **HintKit 0.2.0**, including bubble tails, advanced styling,
+and the refreshed card layout. Existing API calls compile unchanged. Defaults
+retain the released colors, fonts, and 0.15-second fade; select `.fromAnchor`
+to opt in to expansion from the target.
+
+Already using 0.1.0? Start with the README's
+[upgrade instructions](../README.md#updating-from-010), including dependency
+rules, preserving history, and the default layout changes.
+
 This guide uses a photo-selection button as an example. The same steps apply
 to any UIKit button, image view, or other view in the current screen.
 
 ## 1. Add the package
 
 Add `https://github.com/Hayyim-K/HintKit.git` in Xcode's **File → Add Package
-Dependencies** dialog, choose version 0.1.0 or later, and link the HintKit
+Dependencies** dialog, choose version 0.2.0 or later, and link the HintKit
 product to the app target. Your app's minimum iOS version must be 15 or later.
 
 ## 2. Keep one presenter for the screen
@@ -134,9 +143,113 @@ Text supports Dynamic Type and natural writing direction. Long descriptions
 scroll. If neither side has enough space for a readable card, `show` returns
 `false`. Prefer short explanations, especially at accessibility text sizes.
 
+The default card layout uses a larger icon centered beside the text block,
+with the title and description aligned on the same center. The icon grows to
+60 points and adapts to 20% of the card width on narrower cards. A separate
+corner close control keeps a 44-point touch target. The released default
+colors, system fonts, lack of border, and fade animation remain unchanged;
+custom styling still applies to this refreshed layout.
+
 The card occupies part of the screen; touches in empty overlay areas pass
 through to the underlying interface. Its target outline does not change the
-target view's transform. Reduce Motion disables fading and pulsing.
+target view's transform. Reduce Motion disables appearance motion and pulsing.
+
+### Add a bubble tail
+
+Opt in to a curved tail that joins the card background and points to its target:
+
+```swift
+hints.show(
+    Hint(id: "photo.choose", title: "Choose a photo", message: "Tap here."),
+    near: photoButton,
+    in: self,
+    sourcePoint: CGPoint(x: photoButton.bounds.midX, y: photoButton.bounds.minY),
+    options: HintOptions(placement: .above, pointerStyle: .tail)
+)
+```
+
+`sourcePoint` is optional. It is expressed in the target view's own coordinates
+and must be inside `sourceRect` (or `target.bounds` when no rectangle is given).
+Without a point, the tail aims at the nearest edge of the visible anchor region.
+`sourceRect` still controls the region used for placement and highlighting, so a
+precise tip does not require a zero-sized rectangle or a separate invisible view.
+
+| `HintOptions.pointerStyle` | Presentation |
+| --- | --- |
+| `.arrows` | Existing SF Symbol arrows; the default for existing callers. |
+| `.tail` | A curved tail attached to the card background. |
+| `.tailAndArrows` | Both the tail and the existing arrows. |
+| `.none` | No pointer decoration. |
+
+`highlightsTarget` independently controls the target outline in all four modes.
+Existing `Hint.arrows` tags and JSON files keep their original meaning.
+
+Cards can prefer `.above`, `.below`, `.left`, or `.right`. In automatic tail mode,
+HintKit first tries above/below, then the horizontal sides if there is too little
+vertical room. Existing automatic arrow mode continues to use above/below.
+Left/right are physical directions and are not mirrored by RTL text layout.
+
+Use `HintStyle(tailLength: 14, tailWidth: 26)` to change the tail's dimensions in
+points. `tailLength` reserves additional space between card and anchor, on top
+of `anchorSpacing`. An explicit point deeper inside the target can make the
+actual tail longer. The base stays clear of rounded corners; the tip keeps its
+exact target position even when the card has to shift near a screen edge.
+
+The tail and card use one background path, including with translucent colors.
+They remain nonmodal: the tail never intercepts touches or becomes a separate
+VoiceOver element. Movement, scrolling, appearance changes, dismissal, and
+`withHintsHidden` cover the entire bubble. A clipped/offscreen exact point
+causes the hint to close rather than leave a detached pointer.
+
+These APIs are available in version 0.2.0 and later.
+
+### Customize fonts, borders, and shadows
+
+```swift
+let style = HintStyle(
+    cornerRadius: 24,
+    backgroundColor: .secondarySystemBackground,
+    foregroundColor: .label,
+    tintColor: .systemTeal,
+    titleFont: .systemFont(ofSize: 19, weight: .bold),
+    messageFont: .systemFont(ofSize: 17),
+    border: HintBorder(color: .systemTeal, width: 1.5),
+    shadow: .custom(color: .black, opacity: 0.2, radius: 10,
+                    offset: CGSize(width: 0, height: 4))
+)
+let hints = HintPresenter(style: style)
+```
+
+Use base fonts at the standard Large text category, without pre-scaling them.
+HintKit scales custom fonts with `UIFontMetrics` and remeasures the card when
+Dynamic Type changes. Set `scalesFontsForContentSizeCategory: false` to keep
+font sizes fixed. Omit custom fonts to retain system headline/body styles.
+
+The border uses point units and follows the entire card and tail. Omit it for
+no border. Shadows accept a color, opacity from 0 through 1, blur radius, and
+offset. `.none` disables shadows. The default `.automatic` preserves plain
+cards without a shadow and the subtle shadow for tails. Dynamic `UIColor`
+values update with the host's appearance. A style is shared by one presenter;
+create a presenter with a different style for another screen or theme.
+
+### Configure appearance motion
+
+```swift
+let options = HintOptions(
+    pointerStyle: .tail,
+    appearanceAnimation: .fromAnchor,
+    animationDuration: 0.22
+)
+hints.show(photoHint, near: photoButton, in: self, options: options)
+```
+
+`.fade` over 0.15 seconds remains the default. With `.fromAnchor`, the entire
+card fades in and gently expands
+from the target point. A supplied `sourcePoint` pins the animation to that
+exact point; otherwise the nearest edge of the anchor is used. The highlight
+stays fixed. Keep `.fade` for fade-only appearance, or choose `.none` for immediate
+appearance. `animates: false` disables appearance and highlight animations;
+zero duration disables only appearance motion. Reduce Motion disables both.
 
 ## 6. Exclude guidance from exported images
 
@@ -149,7 +262,7 @@ let image = hints.withHintsHidden {
 ```
 
 `renderPostcard()` represents your existing rendering function. The closure
-hides HintKit's card and outline, then restores them, including after an error
+hides HintKit's card, tail, and outline, then restores them, including after an error
 or nested calls. It does not hide other UI supplied by the app. It is intended
 for synchronous rendering; do not schedule capture for later inside it.
 
@@ -160,7 +273,9 @@ Clone this repository and open
 and an iPhone or iPad simulator, then run. The demo uses the package from this
 checkout through a relative local dependency.
 
-Tap Photo, Palette, and Save, try the close button, then replay help. Reset
+Try the Tail / Arrows / Both / None selector and System / Paper / Night themes.
+Tap Photo, Palette, and Save,
+try the close button, then replay help. Reset
 demo history affects only the demo's namespace. The demo does not access the
 photo library or save real images.
 

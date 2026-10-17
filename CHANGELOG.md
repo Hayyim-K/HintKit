@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.2.0 — 2026-10-17
+
+- Optional curved bubble tails, combined tails/arrows, and pointer-free cards.
+- Exact `sourcePoint` targeting and left/right card placements with safe-area fallback.
+- Independent target outlines, continuous translucent backgrounds, touch passthrough,
+  dynamic colors, movement tracking, and export exclusion for the entire bubble.
+- Demo pointer-style selector, integration examples, and tail regression tests.
+- Existing callers retain the automatic symbol-arrow presentation by default.
+- Custom title/message fonts with optional Dynamic Type scaling, silhouette
+  borders, and automatic, disabled, or fully configurable shadows.
+- Optional appearance from the target point, configurable duration, immediate
+  appearance, and Reduce Motion support; the default remains the released 0.15s fade.
+- Paper and Night demo themes, styling/animation tests, and configuration guides.
+- README upgrade guide from 0.1.0, with preview/release installation, compatibility
+  notes, and integration checks.
+- Refreshed default layout with a larger, vertically centered icon, centered
+  title/message column, and a separate corner close control. Normalize symbol
+  alignment insets to prevent icon size and position from changing with the image.
+- Preserve released default colors, system fonts, border-free cards, and 0.15s fade.
+
 ## 0.1.0 — 2026-10-14
 
 First public release.

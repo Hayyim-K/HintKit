@@ -2,11 +2,14 @@ import UIKit
 import HintKit
 
 final class DemoViewController: UIViewController {
-    private let presenter = HintPresenter(store: HintStore(namespace: "demo"))
+    private var presenter = HintPresenter(store: HintStore(namespace: "demo"))
     private let photo = UIButton(type: .system)
     private let palette = UIButton(type: .system)
     private let save = UIButton(type: .system)
     private let status = UILabel()
+    private let pointer = UISegmentedControl(items: ["Tail", "Arrows", "Both", "None"])
+    private let theme = UISegmentedControl(items: ["System", "Paper", "Night"])
+    private let pointerStyles: [HintPointerStyle] = [.tail, .arrows, .tailAndArrows, .none]
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -47,7 +50,13 @@ final class DemoViewController: UIViewController {
         status.numberOfLines = 0
         status.font = .preferredFont(forTextStyle: .footnote)
         status.adjustsFontForContentSizeCategory = true
-        let stack = UIStackView(arrangedSubviews: [title, subtitle, photo, palette, save, help, reset, status])
+        pointer.selectedSegmentIndex = 0
+        pointer.accessibilityIdentifier = "demo.pointer"
+        pointer.addTarget(self, action: #selector(pointerChanged), for: .valueChanged)
+        theme.selectedSegmentIndex = 0
+        theme.accessibilityIdentifier = "demo.theme"
+        theme.addTarget(self, action: #selector(themeChanged), for: .valueChanged)
+        let stack = UIStackView(arrangedSubviews: [title, subtitle, pointer, theme, photo, palette, save, help, reset, status])
         stack.axis = .vertical
         stack.spacing = 16
         stack.translatesAutoresizingMaskIntoConstraints = false
@@ -86,7 +95,8 @@ final class DemoViewController: UIViewController {
 
     private func showHints(force: Bool) {
         presenter.cancelAll()
-        let options = HintOptions(displayPolicy: force ? .always : .untilCompleted)
+        let options = HintOptions(displayPolicy: force ? .always : .untilCompleted,
+                                  pointerStyle: pointerStyles[pointer.selectedSegmentIndex])
         presenter.enqueue(Hint(id: "demo.photo", title: "Choose a photo",
                                message: "Tap the photo button. The app remains interactive while this card is visible.",
                                imageName: "photo"), near: photo, in: self, options: options)
@@ -112,6 +122,34 @@ final class DemoViewController: UIViewController {
         status.text = "All demo actions completed. Use Show help again to replay the hints."
         presenter.markCompleted("demo.save")
     }
+
+    @objc private func themeChanged() {
+        let style: HintStyle
+        switch theme.selectedSegmentIndex {
+        case 1:
+            style = HintStyle(backgroundColor: UIColor(red: 1, green: 0.96, blue: 0.86, alpha: 1),
+                              foregroundColor: .brown, tintColor: .brown,
+                              titleFont: UIFont(name: "Georgia-Bold", size: 19),
+                              messageFont: UIFont(name: "Georgia", size: 17),
+                              border: HintBorder(color: .brown, width: 1.5),
+                              shadow: .custom(color: .brown, opacity: 0.2, radius: 10, offset: CGSize(width: 0, height: 4)))
+        case 2:
+            style = HintStyle(cornerRadius: 24,
+                              backgroundColor: UIColor(red: 0.10, green: 0.12, blue: 0.19, alpha: 0.98),
+                              foregroundColor: .white, tintColor: .systemTeal,
+                              titleFont: .monospacedSystemFont(ofSize: 19, weight: .bold),
+                              messageFont: .systemFont(ofSize: 18, weight: .medium),
+                              border: HintBorder(color: .systemTeal, width: 1.5),
+                              shadow: .custom(opacity: 0.35, radius: 14, offset: CGSize(width: 0, height: 6)))
+        default:
+            style = HintStyle()
+        }
+        presenter.cancelAll()
+        presenter = HintPresenter(store: presenter.store, style: style)
+        showHints(force: true)
+    }
+
+    @objc private func pointerChanged() { showHints(force: true) }
 
     @objc private func showHelpAgain() { showHints(force: true) }
     @objc private func resetHistory() {
